@@ -1,0 +1,65 @@
+:root {
+  color-scheme: dark;
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+  background: #000;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+body { overscroll-behavior: none; }
+.app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  margin-inline: auto;
+  overflow: hidden;
+  isolation: isolate;
+}
+.panel, .background { position: absolute; inset: 0; width: 100%; height: 100%; }
+.panel[hidden] { display: none; }
+.background { object-fit: cover; object-position: center; user-select: none; }
+.tab-bar {
+  position: absolute;
+  z-index: 1;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
+  left: max(12px, env(safe-area-inset-left, 0px));
+  right: max(12px, env(safe-area-inset-right, 0px));
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 5px;
+  border: 1px solid rgb(255 255 255 / 19%);
+  border-radius: 30px;
+  background: rgb(0 0 0 / 22%);
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+  backdrop-filter: blur(18px) saturate(125%);
+  box-shadow: 0 5px 22px rgb(0 0 0 / 15%), inset 0 1px 0 rgb(255 255 255 / 8%);
+}
+.tab-bar button {
+  appearance: none;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
+  color: rgb(255 255 255 / 80%);
+  font-family: inherit;
+  font-size: clamp(13px, 3.7vw, 16px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -.35px;
+  text-shadow: 0 1px 5px rgb(0 0 0 / 28%);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.tab-bar button[aria-selected="true"] {
+  color: #fff;
+  background: rgb(255 255 255 / 13%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%);
+}
+.tab-bar button:focus-visible { outline: 2px solid #fff; outline-offset: -3px; }
+@media (min-width: 600px) and (orientation: landscape) {
+  .app { width: min(100%, max(320px, calc(100dvh * 430 / 932))); }
+  .tab-bar button { font-size: clamp(13px, 1.7vh, 16px); }
+}

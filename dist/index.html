@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="sanction.">
+  <meta name="description" content="sanction. — your personal workspace.">
+  <title>sanction.</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="preload" as="image" href="./assets/call.png">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <main class="app" aria-label="sanction.">
+    <section id="panel-call" class="panel" role="tabpanel" aria-labelledby="tab-call">
+      <img class="background" src="./assets/call.png" alt="" fetchpriority="high" draggable="false">
+    </section>
+    <section id="panel-email" class="panel" role="tabpanel" aria-labelledby="tab-email" hidden>
+      <img class="background" src="./assets/email.png" alt="" draggable="false">
+    </section>
+    <section id="panel-clients" class="panel" role="tabpanel" aria-labelledby="tab-clients" hidden>
+      <img class="background" src="./assets/clients.png" alt="" draggable="false">
+    </section>
+    <section id="panel-events" class="panel" role="tabpanel" aria-labelledby="tab-events" hidden>
+      <img class="background" src="./assets/events.png" alt="" draggable="false">
+    </section>
+    <section id="panel-notes" class="panel" role="tabpanel" aria-labelledby="tab-notes" hidden>
+      <img class="background" src="./assets/notes.png" alt="" draggable="false">
+    </section>
+    <nav class="tab-bar" role="tablist" aria-label="Workspace tabs">
+      <button id="tab-call" role="tab" aria-selected="true" aria-controls="panel-call" tabindex="0">call.</button>
+      <button id="tab-email" role="tab" aria-selected="false" aria-controls="panel-email" tabindex="-1">email.</button>
+      <button id="tab-clients" role="tab" aria-selected="false" aria-controls="panel-clients" tabindex="-1">clients.</button>
+      <button id="tab-events" role="tab" aria-selected="false" aria-controls="panel-events" tabindex="-1">events.</button>
+      <button id="tab-notes" role="tab" aria-selected="false" aria-controls="panel-notes" tabindex="-1">notes.</button>
+    </nav>
+  </main>
+</body>
+</html>
