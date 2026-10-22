@@ -12,9 +12,7 @@
         else item.removeAttribute("aria-current");
       }
       for (const background of backgrounds) {
-        const active = background.dataset.panel === selected;
-        background.classList.toggle("active", active);
-        if (active) document.documentElement.style.backgroundImage = background.style.backgroundImage;
+        background.classList.toggle("active", background.dataset.panel === selected);
       }
     });
   }
