@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#17141d">
+  <title>sanction.</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script defer src="./script.js"></script>
+</head>
+<body>
+  <main class="app" aria-label="sanction.">
+    <div class="backdrops" aria-hidden="true">
+      <div class="backdrop active" data-panel="call" style="background-image:url('./assets/call.jpg')"></div>
+      <div class="backdrop" data-panel="email" style="background-image:url('./assets/email.jpg')"></div>
+      <div class="backdrop" data-panel="clients" style="background-image:url('./assets/clients.jpg')"></div>
+      <div class="backdrop" data-panel="events" style="background-image:url('./assets/events.jpg')"></div>
+      <div class="backdrop" data-panel="notes" style="background-image:url('./assets/notes.jpg')"></div>
+    </div>
+    <nav class="tab-bar" aria-label="Main navigation">
+      <button class="tab active" type="button" data-tab="call" aria-current="page">call.</button>
+      <button class="tab" type="button" data-tab="email">email.</button>
+      <button class="tab" type="button" data-tab="clients">clients.</button>
+      <button class="tab" type="button" data-tab="events">events.</button>
+      <button class="tab" type="button" data-tab="notes">notes.</button>
+    </nav>
+  </main>
+</body>
+</html>
