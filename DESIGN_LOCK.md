@@ -1,10 +1,10 @@
 # Locked page design — 2026-10-23
 
-The owner approved the existing Clients page as the exact visual master for every page, with the title finalized at 15px and weight 390.
+The owner approved the existing Clients page as the exact visual master for every page, with the title finalized at 15px and weight 400.
 
 ## Authoritative baseline
 
-The commit introducing this file is the approved checkpoint. Its `dist/index.html` Clients panel, `dist/styles.css`, `dist/app.js`, and existing assets together define the complete reference. Preserve that checkpoint in Git history; use its actual files rather than reconstructing the design from this summary.
+The commit finalizing this lock at title weight 400 is the approved checkpoint, superseding the earlier weight-390 lock. Its `dist/index.html` Clients panel, `dist/styles.css`, `dist/app.js`, and existing assets together define the complete reference. Preserve that checkpoint in Git history; use its actual files rather than reconstructing the design from this summary.
 
 ## Replication contract
 
@@ -18,7 +18,7 @@ This checkpoint locks the design only. Other tabs have not yet been replicated; 
 
 | Element | Values |
 | --- | --- |
-| Pinned title | 15px; weight 390; line-height 24px; letter-spacing -0.45px; centered |
+| Pinned title | 15px; weight 400; line-height 24px; letter-spacing -0.45px; centered |
 | Title position | top: safe-area inset + 23px; left/right: 16px |
 | Description and section heading | shared inherited system font; weight 375; size clamp(27px, 7.45cqw, 34px); line-height 1.02; letter-spacing -1.3px |
 | Hero | 60% of app height; minimum 370px |
