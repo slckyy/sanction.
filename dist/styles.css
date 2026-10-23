@@ -8,12 +8,9 @@
 @supports (height: 100dvh) {
   :root { --app-height: 100dvh; }
 }
-/* iOS can exclude the status area from dvh in an installed Home Screen app.
-   Size the entire root to the full viewport so it cannot clip the background. */
+/* Preserve the full installed-iPhone viewport behind the Dynamic Island. */
 @media (display-mode: standalone), (display-mode: fullscreen) {
-  :root {
-    --app-height: 100vh;
-  }
+  :root { --app-height: 100vh; }
   @supports (height: 100lvh) {
     :root { --app-height: 100lvh; }
   }
@@ -27,52 +24,183 @@ body { overscroll-behavior: none; }
   margin-inline: auto;
   overflow: hidden;
   isolation: isolate;
+  container-type: inline-size;
 }
 .panel, .background { position: absolute; inset: 0; width: 100%; height: 100%; }
 .panel[hidden] { display: none; }
-.background { object-fit: cover; object-position: center; user-select: none; }
+.panel { overflow: hidden; }
+.background { object-fit: cover; object-position: center; user-select: none; pointer-events: none; }
+.panel-editorial {
+  --page-accent: #86A5FF;
+  --scroll-progress: 0;
+  color: #000;
+  color-scheme: light;
+}
+.panel-editorial > .background {
+  filter: blur(calc(var(--scroll-progress) * 44px));
+  transform: scale(calc(1 + var(--scroll-progress) * .14));
+}
+.scene-wash {
+  position: absolute;
+  inset: 0;
+  background: #e7eeff;
+  opacity: calc(var(--scroll-progress) * .48);
+  pointer-events: none;
+}
+.page-scroll {
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+}
+.page-scroll::-webkit-scrollbar { display: none; }
+.page-scroll:focus-visible { outline: 2px solid #000; outline-offset: -3px; }
+/* Only the title occupies the hero. The future interactive object is intentionally absent. */
+.editorial-hero {
+  height: calc(var(--app-height) * .60);
+  min-height: 370px;
+  padding: calc(env(safe-area-inset-top, 0px) + 23px) 16px 0;
+}
+.editorial-hero h1 {
+  margin: 0;
+  color: #000;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 600;
+  letter-spacing: -.45px;
+  text-align: center;
+}
+.editorial-content {
+  position: relative;
+  isolation: isolate;
+  padding: 0 max(16px, env(safe-area-inset-right, 0px))
+    calc(env(safe-area-inset-bottom, 0px) + 116px)
+    max(16px, env(safe-area-inset-left, 0px));
+}
+/* A feathered, translucent blur follows the content; never a top bar or solid white sheet. */
+.editorial-content::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -90px 0 0;
+  background: rgb(231 238 255 / 48%);
+  -webkit-backdrop-filter: blur(36px);
+  backdrop-filter: blur(36px);
+  -webkit-mask-image: linear-gradient(transparent, #000 100px);
+  mask-image: linear-gradient(transparent, #000 100px);
+  pointer-events: none;
+}
+.edition-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 21px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .35px;
+}
+.color-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 21px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background: var(--page-accent);
+  color: #000;
+  letter-spacing: 0;
+}
+.editorial-description {
+  min-height: 3.06em;
+  margin: 18px 0 32px;
+  font-size: clamp(27px, 7.45cqw, 34px);
+  line-height: 1.02;
+  font-weight: 500;
+  letter-spacing: -1.3px;
+  text-wrap: pretty;
+}
+.client-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 655 / 1111;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 24px;
+}
+.clients-list { margin-top: 52px; border-bottom: 1px solid rgb(0 0 0 / 15%); }
+.clients-list summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 52px;
+  list-style: none;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -.4px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.clients-list summary::-webkit-details-marker { display: none; }
+.disclosure-arrow {
+  width: 8px;
+  height: 8px;
+  margin: 0 3px 4px 12px;
+  border-right: 1.7px solid currentColor;
+  border-bottom: 1.7px solid currentColor;
+  transform: rotate(45deg);
+}
+.clients-list[open] .disclosure-arrow { transform: rotate(225deg); margin-bottom: -3px; }
+.clients-list p { margin: 0; padding: 6px 0 22px; color: #454545; font-size: 14px; line-height: 1.5; }
+.clients-list summary:focus-visible { outline: 2px solid #000; outline-offset: 3px; }
 .tab-bar {
   position: absolute;
-  z-index: 1;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
-  left: max(12px, env(safe-area-inset-left, 0px));
-  right: max(12px, env(safe-area-inset-right, 0px));
+  z-index: 2;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  left: max(16px, env(safe-area-inset-left, 0px));
+  right: max(16px, env(safe-area-inset-right, 0px));
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  padding: 5px;
-  border: 1px solid rgb(255 255 255 / 19%);
-  border-radius: 30px;
-  background: rgb(0 0 0 / 22%);
-  -webkit-backdrop-filter: blur(18px) saturate(125%);
-  backdrop-filter: blur(18px) saturate(125%);
-  box-shadow: 0 5px 22px rgb(0 0 0 / 15%), inset 0 1px 0 rgb(255 255 255 / 8%);
+  min-height: 52px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 999px;
+  background: #000;
 }
 .tab-bar button {
+  position: relative;
   appearance: none;
   min-width: 0;
-  min-height: 46px;
-  padding: 0 2px;
+  min-height: 52px;
+  padding: 0 3px;
   border: 0;
-  border-radius: 24px;
+  border-radius: 0;
   background: transparent;
-  color: rgb(255 255 255 / 80%);
+  color: #8a8a8a;
   font-family: inherit;
-  font-size: clamp(13px, 3.7vw, 16px);
-  font-weight: 500;
+  font-size: clamp(10px, 2.8cqw, 12px);
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: -.35px;
-  text-shadow: 0 1px 5px rgb(0 0 0 / 28%);
+  letter-spacing: -.15px;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-.tab-bar button[aria-selected="true"] {
-  color: #fff;
-  background: rgb(255 255 255 / 13%);
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%);
+.tab-bar button + button::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 1px;
+  height: 14px;
+  transform: translateY(-50%);
+  background: #fff;
 }
-.tab-bar button:focus-visible { outline: 2px solid #fff; outline-offset: -3px; }
+.tab-bar button[aria-selected="true"] { color: #fff; }
+.tab-bar button:focus-visible { outline: 2px solid #fff; outline-offset: -5px; border-radius: 20px; }
 @media (min-width: 600px) and (orientation: landscape) {
   .app { width: min(100%, max(320px, calc(var(--app-height) * 430 / 932))); }
-  .tab-bar button { font-size: clamp(13px, 1.7vh, 16px); }
 }
