@@ -10,8 +10,9 @@ function updateSceneBlur() {
     scrollFrame = 0;
     return;
   }
-  const progress = Math.min(1, Math.max(0, clientsScroll.scrollTop / distance));
-  clientsPanel.style.setProperty("--scroll-progress", progress.toFixed(3));
+  // Move one long spatial fade with the content instead of ramping a global filter.
+  const start = distance - Math.max(0, clientsScroll.scrollTop) - 180;
+  clientsPanel.style.setProperty("--blur-start", `${start}px`);
   scrollFrame = 0;
 }
 function scheduleSceneBlur() {
@@ -19,6 +20,17 @@ function scheduleSceneBlur() {
 }
 clientsScroll.addEventListener("scroll", scheduleSceneBlur, { passive: true });
 window.addEventListener("resize", scheduleSceneBlur);
+
+// Every direct list item is one confirmed client. Keep the heading in sync
+// with future additions/removals without introducing storage or entry forms.
+const confirmedClients = document.getElementById("confirmed-clients");
+const confirmedCount = document.getElementById("confirmed-count");
+function updateConfirmedCount() {
+  const total = [...confirmedClients.children].filter(child => child.tagName === "LI").length;
+  confirmedCount.textContent = String(total);
+}
+new MutationObserver(updateConfirmedCount).observe(confirmedClients, { childList: true });
+updateConfirmedCount();
 function selectTab(selected) {
   for (const tab of tabs) {
     const active = tab === selected;
