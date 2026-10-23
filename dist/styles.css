@@ -154,8 +154,8 @@ body { overscroll-behavior: none; }
   margin: 0;
   text-align: left;
 }
-#confirmed-clients { margin: 0; padding: 0; list-style: none; }
-#confirmed-clients:empty { display: none; }
+.page-items { margin: 0; padding: 0; list-style: none; }
+.page-items:empty { display: none; }
 .tab-bar {
   position: absolute;
   z-index: 2;

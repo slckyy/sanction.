@@ -12,7 +12,9 @@ Only page text and the page's editorial photo may differ. Everything else must m
 
 Reuse a single shared layout and stylesheet when implementing the remaining pages. Supply page text and photo as content; do not independently recreate the layout per tab. Preserve existing responsive and safe-area rules. Text length can affect wrapping: fit replacement copy to the same line count and verify equivalent element positions; do not compensate with page-specific font sizes or spacing.
 
-This checkpoint locks the design only. Other tabs have not yet been replicated; use owner-supplied text and photos when that work is requested.
+The four other tabs now replicate the Clients markup using the owner's exact text and uploaded editorial photos. Their existing background assets remain in place; their layout, colors, photo frame, blur formula, and typography share the same CSS. The approved Clients baseline remains commit `5f9f0e21f5937971138acc22b66e112ab69985a4`.
+
+The owner clarified that this lock is the starting design for future page additions, including the floating element in the reserved hero. Keep that space empty until the owner requests that work.
 
 ## Key locked values
 

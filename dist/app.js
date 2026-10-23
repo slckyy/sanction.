@@ -1,31 +1,56 @@
 "use strict";
 
-const tabs = [...document.querySelectorAll('[role="tab"]')];
+// Clone the approved Clients markup; only supplied page content and the
+// pre-existing background asset vary. All pages use the same stylesheet.
+const pageContent = [
+  { id: "call", title: "Call • Acquisition", color: "ROSE", lumi: "CALLER LUMI",
+    description: "The space where all of your prospects are acquired by phone.",
+    photo: "rose-photo.png", alt: "Rose LUMI in a rose-toned street-fashion editorial.",
+    prefix: "", singular: "client", plural: "clients", suffix: " to call", list: "clients-to-call" },
+  { id: "email", title: "Email • Acquisition", color: "VIOLET", lumi: "EMAILER LUMI",
+    description: "The space where all of your prospects are acquired by email.",
+    photo: "violet-photo.png", alt: "Violet LUMI in a violet-toned street-fashion editorial.",
+    prefix: "", singular: "client", plural: "clients", suffix: " to email", list: "clients-to-email" },
+  { id: "clients", prefix: " confirmed", singular: "client", plural: "clients", suffix: "", list: "confirmed-clients" },
+  { id: "events", title: "Events • Management", color: "JADE", lumi: "SCHEDULER LUMI",
+    description: "The space where all of your prospect events are scheduled.",
+    photo: "jade-photo.png", alt: "Jade LUMI in a jade-toned street-fashion editorial.",
+    prefix: "", singular: "event", plural: "events", suffix: " scheduled", list: "scheduled-events" },
+  { id: "notes", title: "Notes • Everything", color: "GOLDEN", lumi: "MASTER LUMI",
+    description: "The space where everything about anything is documented.",
+    photo: "golden-photo.png", alt: "Golden LUMI in a golden-toned street-fashion editorial.",
+    prefix: "", singular: "note", plural: "notes", suffix: " written", list: "written-notes" }
+];
 const clientsPanel = document.getElementById("panel-clients");
-const clientsScroll = clientsPanel.querySelector(".page-scroll");
-let scrollFrame = 0;
-function updateSceneBlur() {
-  const distance = clientsPanel.querySelector(".editorial-hero").offsetHeight;
-  if (!distance) {
-    scrollFrame = 0;
-    return;
-  }
-  // Move one long spatial fade with the content instead of ramping a global filter.
-  const start = distance - Math.max(0, clientsScroll.scrollTop) - 180;
-  clientsPanel.style.setProperty("--blur-start", `${start}px`);
-  scrollFrame = 0;
+for (const page of pageContent) {
+  if (page.id === "clients") continue;
+  const panel = document.getElementById("panel-" + page.id);
+  const background = panel.querySelector(".background").getAttribute("src");
+  const copy = clientsPanel.cloneNode(true);
+  copy.querySelectorAll(".background").forEach(image => {
+    image.src = background;
+    image.removeAttribute("fetchpriority");
+  });
+  copy.querySelector("h1").textContent = page.title;
+  copy.querySelector(".page-scroll").setAttribute("aria-label", page.title + " page");
+  copy.querySelector(".color-badge").textContent = page.color;
+  copy.querySelector(".edition-label > span:last-child").textContent = page.lumi;
+  copy.querySelector(".editorial-description").textContent = page.description;
+  const photo = copy.querySelector(".client-photo");
+  photo.src = "./assets/" + page.photo;
+  photo.alt = page.alt;
+  const heading = copy.querySelector("h2");
+  heading.id = page.id + "-heading";
+  heading.innerHTML = '<span id="' + page.id + '-count">Zero</span>' + page.prefix
+    + ' <span id="' + page.id + '-noun">' + page.plural + '</span>' + page.suffix + ':';
+  copy.querySelector(".clients-section").setAttribute("aria-labelledby", heading.id);
+  const list = copy.querySelector(".page-items");
+  list.id = page.list;
+  list.setAttribute("aria-label", page.plural + page.suffix);
+  panel.classList.add("panel-editorial");
+  panel.replaceChildren(...copy.childNodes);
 }
-function scheduleSceneBlur() {
-  if (!scrollFrame) scrollFrame = requestAnimationFrame(updateSceneBlur);
-}
-clientsScroll.addEventListener("scroll", scheduleSceneBlur, { passive: true });
-window.addEventListener("resize", scheduleSceneBlur);
 
-// Every direct list item is one confirmed client. Keep the heading in sync
-// with future additions/removals without introducing storage or entry forms.
-const confirmedClients = document.getElementById("confirmed-clients");
-const confirmedCount = document.getElementById("confirmed-count");
-const confirmedClientNoun = document.getElementById("confirmed-client-noun");
 function countInWords(count) {
   const small = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
     "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
@@ -41,13 +66,41 @@ function countInWords(count) {
   const words = spell(count);
   return words[0].toUpperCase() + words.slice(1);
 }
-function updateConfirmedCount() {
-  const total = [...confirmedClients.children].filter(child => child.tagName === "LI").length;
-  confirmedCount.textContent = countInWords(total);
-  confirmedClientNoun.textContent = total === 1 ? "client" : "clients";
+
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+const pageStates = pageContent.map(page => {
+  const panel = document.getElementById("panel-" + page.id);
+  const scroll = panel.querySelector(".page-scroll");
+  const list = document.getElementById(page.list);
+  const heading = panel.querySelector("h2");
+  const count = heading.querySelector("span:first-child");
+  const noun = heading.querySelector("span:last-child");
+  const state = { panel, scroll, frame: 0 };
+  function updateCount() {
+    const total = [...list.children].filter(child => child.tagName === "LI").length;
+    count.textContent = countInWords(total);
+    noun.textContent = total === 1 ? page.singular : page.plural;
+  }
+  new MutationObserver(updateCount).observe(list, { childList: true });
+  updateCount();
+  scroll.addEventListener("scroll", () => scheduleSceneBlur(state), { passive: true });
+  return state;
+});
+
+function updateSceneBlur(state) {
+  const distance = state.panel.querySelector(".editorial-hero").offsetHeight;
+  if (distance) {
+    const start = distance - Math.max(0, state.scroll.scrollTop) - 180;
+    state.panel.style.setProperty("--blur-start", start + "px");
+  }
+  state.frame = 0;
 }
-new MutationObserver(updateConfirmedCount).observe(confirmedClients, { childList: true });
-updateConfirmedCount();
+function scheduleSceneBlur(state) {
+  if (!state.frame) state.frame = requestAnimationFrame(() => updateSceneBlur(state));
+}
+window.addEventListener("resize", () => {
+  pageStates.filter(state => !state.panel.hidden).forEach(scheduleSceneBlur);
+});
 function selectTab(selected) {
   for (const tab of tabs) {
     const active = tab === selected;
@@ -55,21 +108,23 @@ function selectTab(selected) {
     tab.tabIndex = active ? 0 : -1;
     document.getElementById(tab.getAttribute("aria-controls")).hidden = !active;
   }
+  const state = pageStates.find(state => state.panel.id === selected.getAttribute("aria-controls"));
+  updateSceneBlur(state);
 }
 function openClients() {
   selectTab(document.getElementById("tab-clients"));
-  clientsScroll.scrollTop = 0;
-  updateSceneBlur();
+  const state = pageStates.find(state => state.panel === clientsPanel);
+  state.scroll.scrollTop = 0;
+  updateSceneBlur(state);
 }
-// Reset on launch, history restoration, and returning from the background.
+// Preserve the approved launch and return-to-app behavior.
 window.addEventListener("pageshow", openClients);
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") openClients();
 });
-
 tabs.forEach((tab, index) => {
   tab.addEventListener("click", () => selectTab(tab));
-  tab.addEventListener("keydown", (event) => {
+  tab.addEventListener("keydown", event => {
     let next;
     if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
     if (event.key === "ArrowLeft") next = (index - 1 + tabs.length) % tabs.length;
