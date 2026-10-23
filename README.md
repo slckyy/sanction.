@@ -22,6 +22,8 @@ Only the visual skeleton and tab switching are implemented. Data storage and tab
 
 The app always starts on `clients.` and returns there when reopened from the background or restored from browser history. The blue background is preloaded for the initial view.
 
+The app icon is the owner's original `Untitled design.png` (1024 × 1024 RGBA), copied byte-for-byte to `dist/assets/sanction-icon.png`. Its transparency is preserved. Both HTML entry points and the web app manifest reference this icon.
+
 ## Checkpoint convention
 
 When the owner ends a request with `build`, implement the requested change and commit the completed checkpoint to `slckyy/sanction.`. Do not change other GitHub repositories or expand the feature scope.
