@@ -13,8 +13,8 @@
   <link rel="icon" type="image/png" sizes="1024x1024" href="./assets/sanction-icon.png">
   <link rel="apple-touch-icon" sizes="1024x1024" href="./assets/sanction-icon.png">
   <link rel="preload" as="image" href="./assets/clients.png">
-  <link rel="stylesheet" href="./styles.css?v=4">
-  <script src="./app.js?v=3" defer></script>
+  <link rel="stylesheet" href="./styles.css?v=5">
+  <script src="./app.js?v=4" defer></script>
 </head>
 <body>
   <main class="app" aria-label="sanction.">
@@ -26,22 +26,23 @@
     </section>
     <section id="panel-clients" class="panel panel-editorial" role="tabpanel" aria-labelledby="tab-clients">
       <img class="background" src="./assets/clients.png" alt="" fetchpriority="high" draggable="false">
-      <div class="scene-wash" aria-hidden="true"></div>
+      <div class="scene-soft" aria-hidden="true">
+        <img class="background" src="./assets/clients.png" alt="" draggable="false">
+      </div>
+      <header class="page-title"><h1>CLIENTS • MANAGEMENT</h1></header>
       <div class="page-scroll" tabindex="0" aria-label="Clients management page">
-        <header class="editorial-hero">
-          <h1>CLIENTS • MANAGEMENT</h1>
-        </header>
+        <div class="editorial-hero" aria-hidden="true"></div>
         <div class="editorial-content">
           <div class="edition-label">
             <span class="color-badge">BLUE</span>
             <span>CLIENTELE LUMI</span>
           </div>
-          <p class="editorial-description">the space for all of your confirmed clients.</p>
+          <p class="editorial-description">the space where all of your confirmed prospects are managed.</p>
           <img class="client-photo" src="./assets/client-photo.png" alt="Blue LUMI resting on a cobalt slab among dark sculptural objects." width="1290" height="2796" draggable="false">
-          <details class="clients-list">
-            <summary>CLIENTS<span class="disclosure-arrow" aria-hidden="true"></span></summary>
-            <p>no clients open.</p>
-          </details>
+          <section class="clients-section" aria-labelledby="clients-heading">
+            <h2 id="clients-heading" aria-live="polite" aria-atomic="true">CLIENTS | <span><span id="confirmed-count">0</span> CONFIRMED.</span></h2>
+            <ul id="confirmed-clients" aria-label="Confirmed clients"></ul>
+          </section>
         </div>
       </div>
     </section>
