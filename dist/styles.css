@@ -37,6 +37,11 @@ body { overscroll-behavior: none; }
   color: #000;
   color-scheme: light;
 }
+#panel-call { --page-accent: #F28B96; }
+#panel-email { --page-accent: #C394EE; }
+#panel-clients { --page-accent: #86A5FF; }
+#panel-events { --page-accent: #78D9B5; }
+#panel-notes { --page-accent: #F3B363; }
 .scene-soft {
   position: absolute;
   inset: 0;

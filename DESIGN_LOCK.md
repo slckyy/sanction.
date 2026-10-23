@@ -8,7 +8,7 @@ The commit finalizing this lock at title weight 400 is the approved checkpoint, 
 
 ## Replication contract
 
-Only page text and the page's editorial photo may differ. Everything else must match the Clients master pixel for pixel at the same viewport, safe-area insets, and scroll position. This includes backgrounds, colors, typography, layout, margins, padding, alignment, photo frame, corner radii, header placement, reserved hero space, blur progression, scrolling, and tab navigation. Do not introduce page-specific style overrides or automatic recoloring. Further visual changes require an explicit owner request.
+Page text, the editorial photo, the existing page background, and the locked badge fill listed below may differ. Everything else must match the Clients master pixel for pixel at the same viewport, safe-area insets, and scroll position. This includes typography, layout, margins, padding, alignment, photo frame, corner radii, header placement, reserved hero space, blur progression, scrolling, and tab navigation. Only the documented badge accent may vary through a page-specific color variable. Do not introduce other page-specific style overrides or automatic recoloring. Further visual changes require an explicit owner request.
 
 Reuse a single shared layout and stylesheet when implementing the remaining pages. Supply page text and photo as content; do not independently recreate the layout per tab. Preserve existing responsive and safe-area rules. Text length can affect wrapping: fit replacement copy to the same line count and verify equivalent element positions; do not compensate with page-specific font sizes or spacing.
 
@@ -37,3 +37,15 @@ The Clients copy remains “Clients • Management”, “The space where all of
 ## Verification and delivery
 
 Compare every replicated page to the master at identical viewport and scroll positions, including 430 × 932 CSS pixels. Check header and content coordinates, text metrics, photo bounds, navigation, and blur. Keep all non-content styling shared. Update the stylesheet cache version on every CSS change, commit to `slckyy/sanction.`, and distinguish a committed change from a verified live deployment.
+
+## Locked badge palette
+
+| Page | Badge | Fill |
+| --- | --- | --- |
+| Call | ROSE | `#F28B96` |
+| Email | VIOLET | `#C394EE` |
+| Clients | BLUE | `#86A5FF` |
+| Events | JADE | `#78D9B5` |
+| Notes | GOLDEN | `#F3B363` |
+
+Each badge uses its page's locked color. Badge shape, padding, type, and black text remain shared. These page accents and the existing page backgrounds are approved color variations within the shared layout.
