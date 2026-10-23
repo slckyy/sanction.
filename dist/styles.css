@@ -130,7 +130,7 @@ body { overscroll-behavior: none; }
   letter-spacing: 0;
 }
 .editorial-description, .clients-section h2 {
-  font-weight: 350;
+  font-weight: 375;
   font-size: clamp(27px, 7.45cqw, 34px);
   line-height: 1.02;
   letter-spacing: -1.3px;
