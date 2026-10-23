@@ -96,8 +96,8 @@ body { overscroll-behavior: none; }
 .page-title h1 {
   margin: 0;
   color: #000;
-  font-weight: 375;
-  font-size: 16px;
+  font-weight: 400;
+  font-size: 12px;
   line-height: 24px;
   letter-spacing: -.45px;
   text-align: center;
