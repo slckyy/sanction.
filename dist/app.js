@@ -9,6 +9,15 @@ function selectTab(selected) {
     document.getElementById(tab.getAttribute("aria-controls")).hidden = !active;
   }
 }
+function openClients() {
+  selectTab(document.getElementById("tab-clients"));
+}
+// Reset on launch, history restoration, and returning from the background.
+window.addEventListener("pageshow", openClients);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") openClients();
+});
+
 tabs.forEach((tab, index) => {
   tab.addEventListener("click", () => selectTab(tab));
   tab.addEventListener("keydown", (event) => {
