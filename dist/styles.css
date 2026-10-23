@@ -31,43 +31,6 @@ body { overscroll-behavior: none; }
 .panel, .background { position: absolute; inset: 0; width: 100%; height: 100%; }
 .panel[hidden] { display: none; }
 .background { object-fit: cover; object-position: center; user-select: none; }
-#panel-clients {
-  --page-accent: #86A5FF;
-  --page-text: #E7EEFF;
-  --page-dark: #141E33;
-}
-/* Scroll the content, keeping the original photo full-screen behind it.
-   The safe-area padding is transparent: no strip behind the Dynamic Island. */
-.page-content {
-  position: relative;
-  height: 100%;
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  padding: calc(env(safe-area-inset-top, 0px) + 32px)
-    max(24px, env(safe-area-inset-right, 0px))
-    calc(env(safe-area-inset-bottom, 0px) + 100px)
-    max(24px, env(safe-area-inset-left, 0px));
-}
-.page-header {
-  margin: 0 0 32px;
-  text-shadow: 0 2px 12px rgb(0 0 0 / 45%);
-}
-.page-header h1 {
-  margin: 0;
-  color: var(--page-accent);
-  font-size: clamp(38px, 10vw, 44px);
-  font-weight: 800;
-  line-height: 1.05;
-  letter-spacing: -1.8px;
-}
-.page-header p {
-  margin: 8px 0 0;
-  color: var(--page-text);
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1.5;
-  letter-spacing: -.1px;
-}
 .tab-bar {
   position: absolute;
   z-index: 1;
