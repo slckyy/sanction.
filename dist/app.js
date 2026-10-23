@@ -1,6 +1,24 @@
 "use strict";
 
 const tabs = [...document.querySelectorAll('[role="tab"]')];
+const clientsPanel = document.getElementById("panel-clients");
+const clientsScroll = clientsPanel.querySelector(".page-scroll");
+let scrollFrame = 0;
+function updateSceneBlur() {
+  const distance = clientsPanel.querySelector(".editorial-hero").offsetHeight;
+  if (!distance) {
+    scrollFrame = 0;
+    return;
+  }
+  const progress = Math.min(1, Math.max(0, clientsScroll.scrollTop / distance));
+  clientsPanel.style.setProperty("--scroll-progress", progress.toFixed(3));
+  scrollFrame = 0;
+}
+function scheduleSceneBlur() {
+  if (!scrollFrame) scrollFrame = requestAnimationFrame(updateSceneBlur);
+}
+clientsScroll.addEventListener("scroll", scheduleSceneBlur, { passive: true });
+window.addEventListener("resize", scheduleSceneBlur);
 function selectTab(selected) {
   for (const tab of tabs) {
     const active = tab === selected;
@@ -11,6 +29,8 @@ function selectTab(selected) {
 }
 function openClients() {
   selectTab(document.getElementById("tab-clients"));
+  clientsScroll.scrollTop = 0;
+  updateSceneBlur();
 }
 // Reset on launch, history restoration, and returning from the background.
 window.addEventListener("pageshow", openClients);
