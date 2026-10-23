@@ -150,7 +150,7 @@ body { overscroll-behavior: none; }
 .clients-section { margin-top: 32px; }
 .clients-section h2 {
   margin: 0;
-  text-align: right;
+  text-align: left;
 }
 .clients-section h2 > span { white-space: nowrap; }
 #confirmed-clients { margin: 0; padding: 0; list-style: none; }
