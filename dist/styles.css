@@ -89,7 +89,7 @@ body { overscroll-behavior: none; }
   right: 16px;
   pointer-events: none;
 }
-.page-title h1, .editorial-description {
+.page-title h1, .editorial-description, .clients-section h2 {
   font-family: inherit;
   font-weight: 700;
 }
@@ -129,11 +129,13 @@ body { overscroll-behavior: none; }
   color: #000;
   letter-spacing: 0;
 }
-.editorial-description {
-  margin: 18px 0 18px;
+.editorial-description, .clients-section h2 {
   font-size: clamp(27px, 7.45cqw, 34px);
   line-height: 1.02;
   letter-spacing: -1.3px;
+}
+.editorial-description {
+  margin: 18px 0 18px;
   text-wrap: pretty;
 }
 .client-photo {
@@ -148,10 +150,6 @@ body { overscroll-behavior: none; }
 .clients-section { margin-top: 32px; }
 .clients-section h2 {
   margin: 0;
-  font-size: clamp(27px, 7.45cqw, 34px);
-  line-height: 1.02;
-  font-weight: 700;
-  letter-spacing: -1.3px;
   text-align: right;
 }
 .clients-section h2 > span { white-space: nowrap; }
