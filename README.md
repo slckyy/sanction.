@@ -16,6 +16,8 @@ Static HTML, CSS, and JavaScript live in `dist/`. No install or build step is re
 
 For the iPhone full-screen presentation, open in Safari and add to the Home Screen. The standalone status-bar configuration allows the background beneath the status area; browser chrome remains controlled by Safari in a normal tab.
 
+The root, body, and app use `100lvh` (with `100vh` fallback) in standalone/fullscreen display modes. This avoids the shortened `100dvh` reported by some iOS Home Screen apps. Browser tabs retain dynamic viewport sizing. Safe-area spacing applies to the floating navigation, not the background.
+
 Only the visual skeleton and tab switching are implemented. Data storage and tab content await the owner's next instructions.
 
 ## Checkpoint convention
