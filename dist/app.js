@@ -25,9 +25,26 @@ window.addEventListener("resize", scheduleSceneBlur);
 // with future additions/removals without introducing storage or entry forms.
 const confirmedClients = document.getElementById("confirmed-clients");
 const confirmedCount = document.getElementById("confirmed-count");
+const confirmedClientNoun = document.getElementById("confirmed-client-noun");
+function countInWords(count) {
+  const small = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+    "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"];
+  const tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+  function spell(value) {
+    if (value < 20) return small[value];
+    if (value < 100) return tens[Math.floor(value / 10)] + (value % 10 ? "-" + small[value % 10] : "");
+    if (value < 1000) return small[Math.floor(value / 100)] + " hundred" + (value % 100 ? " " + spell(value % 100) : "");
+    for (const [scale, name] of [[1e15, "quadrillion"], [1e12, "trillion"], [1e9, "billion"], [1e6, "million"], [1e3, "thousand"]]) {
+      if (value >= scale) return spell(Math.floor(value / scale)) + " " + name + (value % scale ? " " + spell(value % scale) : "");
+    }
+  }
+  const words = spell(count);
+  return words[0].toUpperCase() + words.slice(1);
+}
 function updateConfirmedCount() {
   const total = [...confirmedClients.children].filter(child => child.tagName === "LI").length;
-  confirmedCount.textContent = String(total);
+  confirmedCount.textContent = countInWords(total);
+  confirmedClientNoun.textContent = total === 1 ? "client" : "clients";
 }
 new MutationObserver(updateConfirmedCount).observe(confirmedClients, { childList: true });
 updateConfirmedCount();
