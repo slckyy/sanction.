@@ -26,7 +26,7 @@ The updated visual lock uses black/gray text with a blue badge background `#86A5
 
 The app always starts on `clients.` and returns there when reopened from the background or restored from browser history. The blue background is preloaded for the initial view.
 
-The app icon is the owner's original `Untitled design.png` (1024 × 1024 RGBA), copied byte-for-byte to `dist/assets/sanction-icon.png`. Its transparency is preserved. Both HTML entry points and the web app manifest reference this icon.
+The app icon uses the owner's original artwork composited over solid black at 1024 × 1024, saved as opaque RGB PNG at `dist/assets/sanction-icon-black.png`. Both HTML entry points and the web app manifest reference this versioned asset. The original transparent source is preserved.
 
 ## Checkpoint convention
 
