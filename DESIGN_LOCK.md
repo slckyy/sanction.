@@ -1,6 +1,28 @@
 # Locked page design — 2026-10-23
 
-The owner approved the existing Clients page as the exact visual master for every page, with the title finalized at 15px and weight 400.
+The owner approved the completed CALL page on 2026-10-24 as the master for the remaining LUMI pages. This approval includes its character presentation, materials, lighting, interaction, and scrolling. The earlier Clients layout lock below remains the shared layout foundation.
+
+## Approved CALL / Rose master — 2026-10-24
+
+Authoritative implementation: commit `7f28a48a02f316ca1ae9f5b2617efbaf1793501c`, approved by the owner with “that page is perfect. lock it in because essentially everything will be the exact same”. Preserve this checkpoint in Git history and reuse its implementation when the owner requests the next character.
+
+The approved files are `dist/rose-viewer.js`, `dist/assets/rose-lumi-real.glb`, and the existing shared `dist/index.html`, `dist/app.js`, and `dist/styles.css`. The delivered model is `C:\Users\Administrator\Documents\LUMI_lighting_models\rose-lumi-real.glb`. Later documentation-only commits do not replace this visual checkpoint.
+
+Locked presentation and behavior:
+
+- The existing page content, background photograph and crop, typography, layout, responsive sizing, safe areas, blur progression, navigation, and scroll behavior.
+- The actual Rose geometry and phone pose, including the repaired curved free arm and seamless shoulder. Preserve the refined phone, cord, and all other approved parts.
+- Fine charcoal leather on the body; black molded plastic on the faceplate, handset, and recessed eye interiors; matte cord.
+- Powered outer eye rims and handset LED accents, with local light spill. Rose's emission matches the actual under-light hue; the original broader painted eye rings are superseded by this approved outer-rim construction.
+- The fixed rose light below LUMI at intensity 19, with the approved environment, fill, exposure, and material settings. Local LED lights follow the character; the main lighting remains fixed while he rotates.
+- Transparent 3D rendering in the existing hero, fitted around the full assembly including the cord. No floor, backdrop, extra UI, or layout shift.
+- Unrestricted quaternion rotation on all three axes, including roll; immediate dragging; subtle float; smooth return to the approved rest pose in 0.85 seconds (0.22 seconds with reduced motion).
+- Rendering on every available display frame, without the former 30 fps throttle or long damping tail. Keep the optimized touch-target updates, native scrolling outside the character, reduced-motion support, and off-screen suspension.
+- The pinned title's text alone overlays LUMI during scrolling. Do not restore the header clipping mask or add an opaque/blurred header layer over him.
+
+For subsequent characters, reuse this viewer and material/lighting approach with their own approved poses, accessories, colors, atmosphere references, and existing page content. Fit each full assembly proportionally rather than copying Rose's dimensions or pose. Do not invent variant-specific layout or interaction changes. Further changes to the approved master require an explicit owner request.
+
+This lock records approval of Rose; it does not authorize starting the other four characters. Implement each when requested. The earlier empty-hero instruction below applies only to characters not yet authorized for integration.
 
 ## Authoritative baseline
 
@@ -14,7 +36,7 @@ Reuse a single shared layout and stylesheet when implementing the remaining page
 
 The four other tabs now replicate the Clients markup using the owner's exact text and uploaded editorial photos. Their existing background assets remain in place; their layout, colors, photo frame, blur formula, and typography share the same CSS. The approved Clients baseline remains commit `5f9f0e21f5937971138acc22b66e112ab69985a4`.
 
-The owner clarified that this lock is the starting design for future page additions, including the floating element in the reserved hero. Keep that space empty until the owner requests that work.
+The reserved hero is now filled on CALL by the approved Rose master above. Other hero spaces remain empty until the owner requests their character integrations.
 
 ## Key locked values
 
