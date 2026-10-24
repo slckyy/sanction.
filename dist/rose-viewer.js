@@ -12,7 +12,7 @@ export async function mountRose(panel) {
   const abort = new AbortController();
   const on = (target, event, fn, options = {}) => target.addEventListener(event, fn, { ...options, signal: abort.signal });
   let renderer;
-  try { renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'low-power' }); }
+  try { renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' }); }
   catch (error) { host.remove(); console.warn('Rose WebGL unavailable', error); return; }
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -38,12 +38,21 @@ export async function mountRose(panel) {
   let width = 1, height = 1, extentX = .07, extentY = .07, pointer = null;
   const orientation = assembly.quaternion.clone(), target = orientation.clone(), rest = orientation.clone();
   const delta = orientation.clone(), idleRotation = orientation.clone();
+  const returnStart = orientation.clone(), returnControl = orientation.clone();
+  const curveA = orientation.clone(), curveB = orientation.clone(), curveC = orientation.clone();
   const velocity = new THREE.Vector3(), axis = new THREE.Vector3();
   function rotate(vector, amount = 1) {
     const angle = vector.length() * amount;
     if (angle) target.premultiply(delta.setFromAxisAngle(axis.copy(vector).normalize(), angle)).normalize();
   }
-  let releaseAt = 0, hullAt = 0, model, environment;
+  let releaseAt = 0, returning = false, hullAt = 0, model, environment;
+  function beginReturn(delay = 0) {
+    returnStart.copy(target); returnControl.copy(target);
+    if (!motion.matches && velocity.lengthSq()) {
+      returnControl.premultiply(delta.setFromAxisAngle(axis.copy(velocity).normalize(), velocity.length() * .10));
+    }
+    releaseAt = clockNow() + delay; returning = true; hullAt = 0;
+  }
   const meshes = [], hitShapes = [];
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), scratch = new THREE.Vector3();
   const clockNow = () => performance.now() * .001;
@@ -60,11 +69,7 @@ export async function mountRose(panel) {
     camera.left = -half * width / height; camera.right = -camera.left;
     camera.updateProjectionMatrix();
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-    clipHeader(); hullAt = 0; wake();
-  }
-  function clipHeader() {
-    const top = Math.max(0, panel.querySelector('.page-title').getBoundingClientRect().bottom + 10 - host.getBoundingClientRect().top);
-    host.style.clipPath = `inset(${top}px 0 0 0)`;
+    hullAt = 0; wake();
   }
   const resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(host);
@@ -74,11 +79,10 @@ export async function mountRose(panel) {
   }, { root: scroll });
   intersection.observe(host);
   const panelObserver = new MutationObserver(() => {
-    if (panel.hidden) { pointer = null; orientation.identity(); target.identity(); velocity.set(0, 0, 0); stop(); }
+    if (panel.hidden) { pointer = null; returning = false; orientation.identity(); target.identity(); velocity.set(0, 0, 0); stop(); }
     else { resize(); wake(); }
   });
   panelObserver.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
-  on(scroll, 'scroll', clipHeader, { passive: true });
   on(document, 'visibilitychange', () => { if (document.hidden) stop(); else wake(); });
   on(motion, 'change', () => { last = 0; wake(); });
   on(window, 'pagehide', event => { if (event.persisted) stop(); else dispose(); });
@@ -99,10 +103,12 @@ export async function mountRose(panel) {
   function updateTouchShapes() {
     scene.updateMatrixWorld(true);
     for (const shape of hitShapes) {
-      const points = shape.points.map(p => {
-        scratch.copy(p).applyMatrix4(shape.mesh.matrixWorld).project(camera);
-        return [(scratch.x * .5 + .5) * width, (-scratch.y * .5 + .5) * height];
-      });
+      const points = shape.projected;
+      for (let i = 0; i < shape.points.length; i++) {
+        scratch.copy(shape.points[i]).applyMatrix4(shape.mesh.matrixWorld).project(camera);
+        points[i][0] = (scratch.x * .5 + .5) * width;
+        points[i][1] = (-scratch.y * .5 + .5) * height;
+      }
       shape.path.setAttribute('d', 'M' + hull(points).map(p => p.map(n => n.toFixed(1)).join(',')).join('L') + 'Z');
     }
   }
@@ -116,7 +122,7 @@ export async function mountRose(panel) {
     if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0) || !hit(event)) return;
     event.preventDefault();
     pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, time: clockNow() };
-    target.copy(orientation); velocity.set(0, 0, 0);
+    target.copy(orientation); returning = false; velocity.set(0, 0, 0);
     svg.setPointerCapture(event.pointerId); host.classList.add('is-dragging'); wake();
   });
   on(svg, 'pointermove', event => {
@@ -136,7 +142,9 @@ export async function mountRose(panel) {
   });
   function release(event) {
     if (!pointer || event.pointerId !== pointer.id) return;
-    pointer = null; releaseAt = clockNow(); host.classList.remove('is-dragging');
+    if (clockNow() - pointer.time > .08 || event.type !== 'pointerup') velocity.set(0, 0, 0);
+    pointer = null; host.classList.remove('is-dragging');
+    beginReturn();
     if (svg.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId);
     if (motion.matches) velocity.set(0, 0, 0);
     wake();
@@ -145,36 +153,33 @@ export async function mountRose(panel) {
   on(svg, 'keydown', event => {
     if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'q', 'Q', 'e', 'E', 'Escape'].includes(event.key)) return;
     event.preventDefault(); velocity.set(0, 0, 0);
-    if (event.key === 'Escape') target.identity();
+    if (event.key === 'Escape') target.copy(orientation);
     else {
       rotate(new THREE.Vector3(event.key === 'ArrowUp' ? -.22 : event.key === 'ArrowDown' ? .22 : 0,
         event.key === 'ArrowLeft' ? -.22 : event.key === 'ArrowRight' ? .22 : 0,
         event.key.toLowerCase() === 'q' ? .22 : event.key.toLowerCase() === 'e' ? -.22 : 0));
     }
-    releaseAt = clockNow() + .65; wake();
+    beginReturn(event.key === 'Escape' ? 0 : .45); wake();
   });
   function draw(ms) {
     frame = 0;
     if (disposed || !ready || !visible || panel.hidden || document.hidden) return;
     const now = ms * .001;
-    // Quiet float runs at 30 fps; direct manipulation uses each display frame.
-    if (!pointer && !motion.matches && last && now - last < 1 / 30) { frame = requestAnimationFrame(draw); return; }
+    // Present every available display frame, including the entire return.
     const dt = last ? Math.max(0, now - last) : 1 / 60; last = now; time += Math.min(dt, .1);
-    if (!pointer) {
-      const age = now - releaseAt;
-      if (age >= 0) {
-        const damping = Math.exp(-7 * dt);
-        const coast = (1 - damping) / 7;
-        rotate(velocity, coast);
-        velocity.multiplyScalar(damping);
-        if (age > .24) {
-          const back = Math.exp(-(motion.matches ? 9 : 1.65) * dt);
-          target.slerp(rest, 1 - back);
-        }
-      }
+    if (pointer || !returning || now < releaseAt) orientation.copy(target);
+    else {
+      // Absolute-time spherical cubic: gentle momentum, then a zero-velocity
+      // arrival in 850 ms. No chained damping or long, jittery settling tail.
+      const progress = Math.min(1, Math.max(0, (now - releaseAt) / (motion.matches ? .22 : .85)));
+      curveA.copy(returnStart).slerp(returnControl, progress);
+      curveB.copy(returnControl).slerp(rest, progress);
+      curveC.copy(rest);
+      curveA.slerp(curveB, progress); curveB.slerp(curveC, progress);
+      orientation.copy(curveA).slerp(curveB, progress);
+      target.copy(orientation);
+      if (progress === 1) { orientation.identity(); target.identity(); velocity.set(0, 0, 0); returning = false; }
     }
-    const ease = 1 - Math.exp(-(pointer ? 35 : 15) * dt);
-    orientation.slerp(target, ease);
     const idle = motion.matches ? 0 : 1;
     axis.set(idle * .009 * Math.sin(time * .53), idle * .014 * Math.sin(time * .37), idle * .007 * Math.sin(time * .43));
     const idleAngle = axis.length();
@@ -182,10 +187,11 @@ export async function mountRose(panel) {
     assembly.quaternion.copy(orientation).premultiply(idleRotation);
     assembly.position.y = idle * .0009 * Math.sin(time * .76);
     renderer.render(scene, camera);
-    if (now - hullAt > .045 || pointer) { updateTouchShapes(); hullAt = now; }
+    // Pointer capture already owns a drag. Avoid rebuilding/sorting hit polygons
+    // on its critical frame path; reuse coordinate buffers between updates.
+    if (!pointer && (hullAt === 0 || now - hullAt > (returning ? .05 : .10))) { updateTouchShapes(); hullAt = now; }
     host.dataset.lumiReady = 'true';
-    const settling = orientation.angleTo(rest) + target.angleTo(rest) > .0001;
-    if (!motion.matches || pointer || settling) frame = requestAnimationFrame(draw);
+    if (!motion.matches || pointer || returning) frame = requestAnimationFrame(draw);
   }
   function dispose() {
     if (disposed) return;
@@ -220,7 +226,7 @@ export async function mountRose(panel) {
     extentX = extentY = 0;
     for (const mesh of meshes) {
       const position = mesh.geometry.attributes.position, points = [];
-      const stride = Math.max(1, Math.floor(position.count / 420));
+      const stride = Math.max(1, Math.floor(position.count / 128));
       for (let i = 0; i < position.count; i++) {
         scratch.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld);
         const radius = scratch.length();
@@ -229,7 +235,7 @@ export async function mountRose(panel) {
         if (i % stride === 0) points.push(new THREE.Vector3().fromBufferAttribute(position, i));
       }
       const path = document.createElementNS(svg.namespaceURI, 'path');
-      svg.append(path); hitShapes.push({ mesh, points, path });
+      svg.append(path); hitShapes.push({ mesh, points, projected: points.map(() => [0, 0]), path });
     }
     // Bright rose cloud band sampled from the supplied atmosphere PNG; independent
     // of the approved #F98083 linear accent factors stored in the GLB.
