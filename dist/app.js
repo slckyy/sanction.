@@ -11,7 +11,9 @@ const pageContent = [
     description: "The space where all of your prospects are acquired by email.",
     photo: "violet-photo.png", alt: "Violet LUMI in a violet-toned street-fashion editorial.",
     prefix: "", singular: "client", plural: "clients", suffix: " to email", list: "clients-to-email" },
-  { id: "clients", prefix: " confirmed", singular: "client", plural: "clients", suffix: "", list: "confirmed-clients" },
+  { id: "clients", title: "Clients • Management", color: "BLUE", lumi: "CLIENTELE LUMI",
+    description: "The space where all of your confirmed prospects are managed.",
+    prefix: " confirmed", singular: "client", plural: "clients", suffix: "", list: "confirmed-clients" },
   { id: "events", title: "Events • Management", color: "JADE", lumi: "SCHEDULER LUMI",
     description: "The space where all of your prospect events are scheduled.",
     photo: "jade-photo.png", alt: "Jade LUMI in a jade-toned street-fashion editorial.",
@@ -67,7 +69,9 @@ function countInWords(count) {
   return words[0].toUpperCase() + words.slice(1);
 }
 
-const tabs = [...document.querySelectorAll('[role="tab"]')];
+const homePanel = document.getElementById("panel-home");
+const enterButton = document.getElementById("workspace-enter");
+let selectedLumi = 2, activePage = "home", homeViewer;
 const pageStates = pageContent.map(page => {
   const panel = document.getElementById("panel-" + page.id);
   const scroll = panel.querySelector(".page-scroll");
@@ -101,56 +105,50 @@ function scheduleSceneBlur(state) {
 window.addEventListener("resize", () => {
   pageStates.filter(state => !state.panel.hidden).forEach(scheduleSceneBlur);
 });
-function selectTab(selected) {
-  for (const tab of tabs) {
-    const active = tab === selected;
-    tab.setAttribute("aria-selected", String(active));
-    tab.tabIndex = active ? 0 : -1;
-    document.getElementById(tab.getAttribute("aria-controls")).hidden = !active;
+function updateEntry() {
+  const page = pageContent[selectedLumi];
+  document.getElementById("home-description").textContent = page.description;
+  enterButton.textContent = activePage === "home" ? "ENTER " + page.id.toUpperCase() + "." : "ENTER SANCTION.";
+  enterButton.setAttribute("aria-controls", "panel-" + (activePage === "home" ? page.id : "home"));
+}
+function showPage(id) {
+  activePage = id;
+  homePanel.hidden = id !== "home";
+  for (const state of pageStates) {
+    state.panel.hidden = state.panel.id !== "panel-" + id;
+    if (!state.panel.hidden) { state.scroll.scrollTop = 0; updateSceneBlur(state); }
   }
-  const state = pageStates.find(state => state.panel.id === selected.getAttribute("aria-controls"));
-  updateSceneBlur(state);
+  updateEntry();
 }
-function openClients() {
-  selectTab(document.getElementById("tab-clients"));
-  const state = pageStates.find(state => state.panel === clientsPanel);
-  state.scroll.scrollTop = 0;
-  updateSceneBlur(state);
+function openHome() {
+  selectedLumi = 2;
+  homeViewer?.select(2, true);
+  showPage("home");
 }
-// Preserve the approved launch and return-to-app behavior.
-window.addEventListener("pageshow", openClients);
-document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") openClients();
-});
-tabs.forEach((tab, index) => {
-  tab.addEventListener("click", () => selectTab(tab));
-  tab.addEventListener("keydown", event => {
-    let next;
-    if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
-    if (event.key === "ArrowLeft") next = (index - 1 + tabs.length) % tabs.length;
-    if (event.key === "Home") next = 0;
-    if (event.key === "End") next = tabs.length - 1;
-    if (next === undefined) return;
-    event.preventDefault();
-    selectTab(tabs[next]);
-    tabs[next].focus();
-  });
-});
+enterButton.addEventListener("click", () => showPage(activePage === "home" ? pageContent[selectedLumi].id : "home"));
+window.addEventListener("pageshow", openHome);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") openHome(); });
 
 // Load only the authorized characters, on first opening their existing tabs.
-for (const [id, asset, label] of [
+const lumiAssets = [
   ["call", "./assets/rose-lumi-real.glb?v=rose-led-arm-3", "Rose LUMI holding a telephone"],
   ["email", "./assets/violet-lumi-real.glb?v=violet-master-1", "Violet LUMI holding a black paper envelope"],
   ["clients", "./assets/blue-lumi-real.glb?v=blue-master-1", "Blue LUMI presenting a black plastic contact card"],
   ["events", "./assets/jade-lumi-real.glb?v=jade-master-1", "Jade LUMI presenting a hovering calendar with metal binding rings"],
   ["notes", "./assets/golden-lumi-real.glb?v=golden-master-1", "Golden LUMI writing in a black cardboard notebook with a stylus"]
-]) {
+];
+import("./lumi-home.js?v=home-1").then(module => {
+  homeViewer = module.mountLumiHome(homePanel, pageContent.map((page, i) => ({ ...page, asset: lumiAssets[i][1], label: lumiAssets[i][2] })), index => {
+    selectedLumi = index; updateEntry();
+  });
+}).catch(error => console.warn("LUMI selection unavailable", error));
+for (const [id, asset, label] of lumiAssets) {
   const panel = document.getElementById("panel-" + id);
   let loading = false;
   const mountWhenVisible = () => {
     if (panel.hidden || loading) return;
     loading = true;
-    import("./lumi-viewer.js?v=motion-speed-1").then(module => module.mountLumi(panel, { asset, label }))
+    import("./lumi-viewer.js?v=home-1").then(module => module.mountLumi(panel, { asset, label }))
       .catch(error => { loading = false; console.warn("LUMI viewer unavailable", error); });
   };
   new MutationObserver(mountWhenVisible).observe(panel, { attributes: true, attributeFilter: ["hidden"] });

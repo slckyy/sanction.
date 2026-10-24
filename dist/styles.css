@@ -226,3 +226,64 @@ html, body { overscroll-behavior: none; }
 .lumi-touch path { fill: transparent; pointer-events: fill; touch-action: none; cursor: grab; }
 .lumi-viewer.is-dragging .lumi-touch path { cursor: grabbing; }
 .lumi-touch:focus-visible { outline: none; }
+
+/* The home page shares the existing type, safe areas and navigation footprint. */
+.panel-home { color: #000; color-scheme: light; }
+.home-content {
+  position: absolute;
+  inset: calc(env(safe-area-inset-top, 0px) + 88px) 0 calc(env(safe-area-inset-bottom, 0px) + 98px);
+  display: grid;
+  grid-template-rows: auto auto minmax(190px, 1fr) minmax(90px, auto);
+  row-gap: 16px;
+  text-align: center;
+}
+.home-brand {
+  margin: 0 16px;
+  font-family: inherit;
+  font-weight: 400;
+  font-size: clamp(40px, 14.4cqw, 64px);
+  line-height: 1.1;
+  letter-spacing: -.03em;
+}
+.home-tagline, .home-description {
+  margin: 0 max(16px, env(safe-area-inset-left, 0px)) 0 max(16px, env(safe-area-inset-right, 0px));
+  text-align: center;
+  align-self: center;
+}
+.home-description { max-width: 440px; justify-self: center; }
+.home-selector {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: pan-y pinch-zoom;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+.home-selector.is-dragging { cursor: grabbing; }
+.home-selector canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 20; }
+.home-lumi-label {
+  position: absolute;
+  top: 83%;
+  left: 50%;
+  display: flex;
+  width: max-content;
+  justify-content: center;
+  padding: 3px 0;
+  border: 0;
+  background: none;
+  color: #000;
+  transform: translate(-50%, -50%);
+  transform-origin: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.home-lumi-label:focus-visible { outline: 1px solid #000; outline-offset: 4px; border-radius: 16px; }
+.entry-bar { grid-template-columns: 1fr; }
+.entry-bar button { color: #fff; border-radius: 999px; }
+.home-selector-fallback { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 16px; }
+.home-selector-fallback .home-lumi-label { position: static; transform: none; }
+@media (max-height: 700px) {
+  .home-content { top: calc(env(safe-area-inset-top, 0px) + 65px); bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); row-gap: 10px; grid-template-rows: auto auto minmax(140px, 1fr) auto; }
+  .home-brand { font-size: clamp(36px, 12cqw, 50px); }
+}

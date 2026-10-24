@@ -1,4 +1,4 @@
-import * as THREE from './vendor/three-gltf.js';
+import * as THREE from './vendor/three-gltf.js?v=home-1';
 
 // Approved Rose master, shared with Violet. Only the posed outer assembly moves.
 // The static-site dependency is locally bundled Three.js 0.186.1 + GLTFLoader (MIT).
