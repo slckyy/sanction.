@@ -150,7 +150,7 @@ for (const [id, asset, label] of [
   const mountWhenVisible = () => {
     if (panel.hidden || loading) return;
     loading = true;
-    import("./lumi-viewer.js?v=violet-master-1").then(module => module.mountLumi(panel, { asset, label }))
+    import("./lumi-viewer.js?v=motion-speed-1").then(module => module.mountLumi(panel, { asset, label }))
       .catch(error => { loading = false; console.warn("LUMI viewer unavailable", error); });
   };
   new MutationObserver(mountWhenVisible).observe(panel, { attributes: true, attributeFilter: ["hidden"] });

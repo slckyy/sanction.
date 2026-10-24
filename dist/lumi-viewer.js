@@ -170,8 +170,8 @@ export async function mountLumi(panel, { asset, label }) {
     if (pointer || !returning || now < releaseAt) orientation.copy(target);
     else {
       // Absolute-time spherical cubic: gentle momentum, then a zero-velocity
-      // arrival in 850 ms. No chained damping or long, jittery settling tail.
-      const progress = Math.min(1, Math.max(0, (now - releaseAt) / (motion.matches ? .22 : .85)));
+      // arrival in about 283 ms (3x faster). No chained damping or settling tail.
+      const progress = Math.min(1, Math.max(0, (now - releaseAt) / ((motion.matches ? .22 : .85) / 3)));
       curveA.copy(returnStart).slerp(returnControl, progress);
       curveB.copy(returnControl).slerp(rest, progress);
       curveC.copy(rest);
@@ -181,11 +181,12 @@ export async function mountLumi(panel, { asset, label }) {
       if (progress === 1) { orientation.identity(); target.identity(); velocity.set(0, 0, 0); returning = false; }
     }
     const idle = motion.matches ? 0 : 1;
-    axis.set(idle * .009 * Math.sin(time * .53), idle * .014 * Math.sin(time * .37), idle * .007 * Math.sin(time * .43));
+    const floatTime = time * 5;
+    axis.set(idle * .009 * Math.sin(floatTime * .53), idle * .014 * Math.sin(floatTime * .37), idle * .007 * Math.sin(floatTime * .43));
     const idleAngle = axis.length();
     idleRotation.setFromAxisAngle(idleAngle ? axis.normalize() : axis.set(1, 0, 0), idleAngle);
     assembly.quaternion.copy(orientation).premultiply(idleRotation);
-    assembly.position.y = idle * .0009 * Math.sin(time * .76);
+    assembly.position.y = idle * .0009 * Math.sin(floatTime * .76);
     renderer.render(scene, camera);
     // Pointer capture already owns a drag. Avoid rebuilding/sorting hit polygons
     // on its critical frame path; reuse coordinate buffers between updates.
