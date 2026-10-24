@@ -141,7 +141,7 @@ tabs.forEach((tab, index) => {
 for (const [id, asset, label] of [
   ["call", "./assets/rose-lumi-real.glb?v=rose-led-arm-3", "Rose LUMI holding a telephone"],
   ["email", "./assets/violet-lumi-real.glb?v=violet-master-1", "Violet LUMI holding a black paper envelope"],
-  ["clients", "./assets/blue-lumi-real.glb?v=blue-master-1", "Blue LUMI presenting a black plastic contact card"]
+  ["clients", "./assets/blue-lumi-real.glb?v=blue-shoulder-2", "Blue LUMI presenting a black plastic contact card"]
 ]) {
   const panel = document.getElementById("panel-" + id);
   let loading = false;
