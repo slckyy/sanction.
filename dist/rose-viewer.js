@@ -25,7 +25,7 @@ export async function mountRose(panel) {
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.classList.add('rose-touch');
   svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', 'Rose LUMI holding a telephone. Drag to rotate; arrow keys to turn; Escape to return.');
+  svg.setAttribute('aria-label', 'Rose LUMI holding a telephone. Drag to rotate freely; drag around the edges to roll. Arrow keys turn, Q and E roll, Escape returns.');
   svg.setAttribute('tabindex', '0');
   host.append(svg);
   const scene = new THREE.Scene();
@@ -36,7 +36,13 @@ export async function mountRose(panel) {
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   let disposed = false, visible = false, ready = false, frame = 0, last = 0, time = 0;
   let width = 1, height = 1, extentX = .07, extentY = .07, pointer = null;
-  let yaw = 0, pitch = 0, targetYaw = 0, targetPitch = 0, velocityX = 0, velocityY = 0;
+  const orientation = assembly.quaternion.clone(), target = orientation.clone(), rest = orientation.clone();
+  const delta = orientation.clone(), idleRotation = orientation.clone();
+  const velocity = new THREE.Vector3(), axis = new THREE.Vector3();
+  function rotate(vector, amount = 1) {
+    const angle = vector.length() * amount;
+    if (angle) target.premultiply(delta.setFromAxisAngle(axis.copy(vector).normalize(), angle)).normalize();
+  }
   let releaseAt = 0, hullAt = 0, model, environment;
   const meshes = [], hitShapes = [];
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), scratch = new THREE.Vector3();
@@ -68,7 +74,7 @@ export async function mountRose(panel) {
   }, { root: scroll });
   intersection.observe(host);
   const panelObserver = new MutationObserver(() => {
-    if (panel.hidden) { pointer = null; yaw = pitch = targetYaw = targetPitch = velocityX = velocityY = 0; stop(); }
+    if (panel.hidden) { pointer = null; orientation.identity(); target.identity(); velocity.set(0, 0, 0); stop(); }
     else { resize(); wake(); }
   });
   panelObserver.observe(panel, { attributes: true, attributeFilter: ['hidden'] });
@@ -110,17 +116,21 @@ export async function mountRose(panel) {
     if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0) || !hit(event)) return;
     event.preventDefault();
     pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, time: clockNow() };
-    targetYaw = yaw; targetPitch = pitch; velocityX = velocityY = 0;
+    target.copy(orientation); velocity.set(0, 0, 0);
     svg.setPointerCapture(event.pointerId); host.classList.add('is-dragging'); wake();
   });
   on(svg, 'pointermove', event => {
     if (!pointer || event.pointerId !== pointer.id) return;
     const now = clockNow(), dt = Math.max(.008, now - pointer.time);
-    const dx = (event.clientX - pointer.x) * .012, dy = (event.clientY - pointer.y) * .008;
-    targetYaw = THREE.MathUtils.clamp(targetYaw + dx, -Math.PI, Math.PI);
-    targetPitch = THREE.MathUtils.clamp(targetPitch + dy, -.4, .4);
-    velocityX = THREE.MathUtils.clamp(dx / dt, -2.4, 2.4);
-    velocityY = THREE.MathUtils.clamp(dy / dt, -1, 1);
+    const dx = (event.clientX - pointer.x) * .012, dy = (event.clientY - pointer.y) * .012;
+    const rect = host.getBoundingClientRect(), radius = Math.min(width, height) * .5;
+    const x = (pointer.x - rect.left - width * .5) / radius;
+    const y = (pointer.y - rect.top - height * .5) / radius;
+    // Incremental world-space trackball rotation: no Euler limits or pole locks.
+    // Tangential edge drags add roll; repeated drags can turn through any angle.
+    const turn = new THREE.Vector3(dy, dx, y * dx - x * dy);
+    rotate(turn);
+    velocity.copy(turn).multiplyScalar(1 / dt).clampLength(0, 2.4);
     pointer = { ...pointer, x: event.clientX, y: event.clientY, time: now };
     event.preventDefault(); wake();
   });
@@ -128,17 +138,18 @@ export async function mountRose(panel) {
     if (!pointer || event.pointerId !== pointer.id) return;
     pointer = null; releaseAt = clockNow(); host.classList.remove('is-dragging');
     if (svg.hasPointerCapture(event.pointerId)) svg.releasePointerCapture(event.pointerId);
-    if (motion.matches) velocityX = velocityY = 0;
+    if (motion.matches) velocity.set(0, 0, 0);
     wake();
   }
   on(svg, 'pointerup', release); on(svg, 'pointercancel', release); on(svg, 'lostpointercapture', release);
   on(svg, 'keydown', event => {
-    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Escape'].includes(event.key)) return;
-    event.preventDefault(); velocityX = velocityY = 0;
-    if (event.key === 'Escape') targetYaw = targetPitch = 0;
+    if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'q', 'Q', 'e', 'E', 'Escape'].includes(event.key)) return;
+    event.preventDefault(); velocity.set(0, 0, 0);
+    if (event.key === 'Escape') target.identity();
     else {
-      targetYaw = THREE.MathUtils.clamp(targetYaw + (event.key === 'ArrowLeft' ? -.22 : event.key === 'ArrowRight' ? .22 : 0), -Math.PI, Math.PI);
-      targetPitch = THREE.MathUtils.clamp(targetPitch + (event.key === 'ArrowUp' ? -.1 : event.key === 'ArrowDown' ? .1 : 0), -.4, .4);
+      rotate(new THREE.Vector3(event.key === 'ArrowUp' ? -.22 : event.key === 'ArrowDown' ? .22 : 0,
+        event.key === 'ArrowLeft' ? -.22 : event.key === 'ArrowRight' ? .22 : 0,
+        event.key.toLowerCase() === 'q' ? .22 : event.key.toLowerCase() === 'e' ? -.22 : 0));
     }
     releaseAt = clockNow() + .65; wake();
   });
@@ -154,24 +165,26 @@ export async function mountRose(panel) {
       if (age >= 0) {
         const damping = Math.exp(-7 * dt);
         const coast = (1 - damping) / 7;
-        targetYaw = THREE.MathUtils.clamp(targetYaw + velocityX * coast, -Math.PI, Math.PI);
-        targetPitch = THREE.MathUtils.clamp(targetPitch + velocityY * coast, -.4, .4);
-        velocityX *= damping; velocityY *= damping;
+        rotate(velocity, coast);
+        velocity.multiplyScalar(damping);
         if (age > .24) {
           const back = Math.exp(-(motion.matches ? 9 : 1.65) * dt);
-          targetYaw *= back; targetPitch *= back;
+          target.slerp(rest, 1 - back);
         }
       }
     }
     const ease = 1 - Math.exp(-(pointer ? 35 : 15) * dt);
-    yaw += (targetYaw - yaw) * ease; pitch += (targetPitch - pitch) * ease;
+    orientation.slerp(target, ease);
     const idle = motion.matches ? 0 : 1;
-    assembly.rotation.set(pitch + idle * .009 * Math.sin(time * .53), yaw + idle * .014 * Math.sin(time * .37), idle * .007 * Math.sin(time * .43), 'YXZ');
+    axis.set(idle * .009 * Math.sin(time * .53), idle * .014 * Math.sin(time * .37), idle * .007 * Math.sin(time * .43));
+    const idleAngle = axis.length();
+    idleRotation.setFromAxisAngle(idleAngle ? axis.normalize() : axis.set(1, 0, 0), idleAngle);
+    assembly.quaternion.copy(orientation).premultiply(idleRotation);
     assembly.position.y = idle * .0009 * Math.sin(time * .76);
     renderer.render(scene, camera);
     if (now - hullAt > .045 || pointer) { updateTouchShapes(); hullAt = now; }
     host.dataset.lumiReady = 'true';
-    const settling = Math.abs(yaw) + Math.abs(pitch) + Math.abs(targetYaw) + Math.abs(targetPitch) > .0001;
+    const settling = orientation.angleTo(rest) + target.angleTo(rest) > .0001;
     if (!motion.matches || pointer || settling) frame = requestAnimationFrame(draw);
   }
   function dispose() {
@@ -202,22 +215,17 @@ export async function mountRose(panel) {
         if (material.transmission && !renderer.extensions.has('EXT_color_buffer_float')) material.transmission = 0;
       }
     });
-    // Fit the actual full vertex envelope, including the cord, for every yaw and
-    // allowed pitch, plus idle sway/bob. No independent character scaling.
+    // A sphere about the character pivot bounds every possible 3-axis rotation,
+    // including the cord and idle bob, without changing character proportions.
     extentX = extentY = 0;
     for (const mesh of meshes) {
       const position = mesh.geometry.attributes.position, points = [];
       const stride = Math.max(1, Math.floor(position.count / 420));
       for (let i = 0; i < position.count; i++) {
         scratch.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld);
-        for (let step = 0; step <= 32; step++) {
-          const angle = -.414 + .828 * step / 32;
-          const y = scratch.y * Math.cos(angle) - scratch.z * Math.sin(angle);
-          const z = scratch.y * Math.sin(angle) + scratch.z * Math.cos(angle);
-          const x = Math.hypot(scratch.x, z);
-          extentX = Math.max(extentX, x + Math.abs(y) * .012);
-          extentY = Math.max(extentY, Math.abs(y) + x * .012 + .001);
-        }
+        const radius = scratch.length();
+        extentX = Math.max(extentX, radius);
+        extentY = Math.max(extentY, radius + .001);
         if (i % stride === 0) points.push(new THREE.Vector3().fromBufferAttribute(position, i));
       }
       const path = document.createElementNS(svg.namespaceURI, 'path');
@@ -226,8 +234,8 @@ export async function mountRose(panel) {
     // Bright rose cloud band sampled from the supplied atmosphere PNG; independent
     // of the approved #F98083 linear accent factors stored in the GLB.
     const sky = new THREE.Color().fromArray(gltf.parser.json.asset.extras.atmosphere_key_linear);
-    const key = new THREE.DirectionalLight(sky.clone().lerp(new THREE.Color(0xffffff), .38), 3.8);
-    key.position.set(-.018, .22, .065); key.castShadow = true;
+    const key = new THREE.DirectionalLight(sky.clone().lerp(new THREE.Color(0xffffff), .38), 19);
+    key.position.set(-.018, -.22, .065); key.castShadow = true;
     key.shadow.mapSize.set(1024, 1024);
     Object.assign(key.shadow.camera, { left: -.10, right: .10, top: .10, bottom: -.10, near: .01, far: .5 });
     key.shadow.bias = -.00003; key.shadow.normalBias = .00009; key.shadow.radius = 3;
@@ -238,7 +246,7 @@ export async function mountRose(panel) {
     const envWidth = 128, envHeight = 64, pixels = new Float32Array(envWidth * envHeight * 4);
     for (let y = 0; y < envHeight; y++) for (let x = 0; x < envWidth; x++) {
       const up = -Math.cos(Math.PI * (y + .5) / envHeight);
-      const sun = Math.pow(Math.max(0, up), 18) * 1.6;
+      const sun = Math.pow(Math.max(0, -up), 18) * 8;
       const base = .35 + .55 * Math.max(0, up);
       const offset = (y * envWidth + x) * 4;
       pixels[offset] = base * (.72 + .28 * sky.r) + sun * sky.r;
@@ -251,7 +259,7 @@ export async function mountRose(panel) {
     const pmrem = new THREE.PMREMGenerator(renderer); environment = pmrem.fromEquirectangular(texture);
     scene.environment = environment.texture; scene.environmentIntensity = 1.1;
     texture.dispose(); pmrem.dispose();
-    // Local emitters travel with their actual optical parts; overhead lights don't.
+    // Local emitters travel with their optical parts; the fixed light below doesn't.
     for (const mesh of meshes.filter(o => /ILLUMINATED_RIM|ROSE_SLIT/.test(o.name))) {
       const box = new THREE.Box3().setFromObject(mesh), pos = box.getCenter(new THREE.Vector3());
       const eye = mesh.name.includes('EYE');
