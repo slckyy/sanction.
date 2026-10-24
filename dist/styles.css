@@ -16,7 +16,7 @@
   }
 }
 html, body { margin: 0; width: 100%; height: var(--app-height); overflow: hidden; }
-body { overscroll-behavior: none; }
+html, body { overscroll-behavior: none; }
 .app {
   position: relative;
   width: 100%;
@@ -76,7 +76,7 @@ body { overscroll-behavior: none; }
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: none;
   scrollbar-width: none;
 }
 .page-scroll::-webkit-scrollbar { display: none; }
