@@ -107,8 +107,7 @@ window.addEventListener("resize", () => {
 });
 function updateEntry() {
   const page = pageContent[selectedLumi];
-  document.getElementById("home-description").textContent = page.description;
-  enterButton.textContent = activePage === "home" ? "ENTER " + page.id.toUpperCase() + "." : "ENTER SANCTION.";
+  enterButton.textContent = activePage === "home" ? "ENTER " + page.id.toUpperCase() : "RETURN TO SANCTION";
   enterButton.setAttribute("aria-controls", "panel-" + (activePage === "home" ? page.id : "home"));
 }
 function showPage(id) {
