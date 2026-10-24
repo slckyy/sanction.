@@ -210,9 +210,9 @@ body { overscroll-behavior: none; }
   .app { width: min(100%, max(320px, calc(var(--app-height) * 430 / 932))); }
 }
 
-/* Rose occupies the already-reserved hero without participating in page flow. */
-#panel-call .editorial-hero { position: relative; }
-.rose-viewer {
+/* Authorized LUMIs occupy the reserved hero without participating in page flow. */
+#panel-call .editorial-hero, #panel-email .editorial-hero { position: relative; }
+.lumi-viewer {
   position: absolute;
   top: calc(env(safe-area-inset-top, 0px) + 61px);
   bottom: 14px;
@@ -221,8 +221,8 @@ body { overscroll-behavior: none; }
   overflow: hidden;
   pointer-events: none;
 }
-.rose-viewer canvas, .rose-touch { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.rose-touch { overflow: hidden; pointer-events: none; touch-action: none; }
-.rose-touch path { fill: transparent; pointer-events: fill; touch-action: none; cursor: grab; }
-.rose-viewer.is-dragging .rose-touch path { cursor: grabbing; }
-.rose-touch:focus-visible { outline: none; }
+.lumi-viewer canvas, .lumi-touch { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.lumi-touch { overflow: hidden; pointer-events: none; touch-action: none; }
+.lumi-touch path { fill: transparent; pointer-events: fill; touch-action: none; cursor: grab; }
+.lumi-viewer.is-dragging .lumi-touch path { cursor: grabbing; }
+.lumi-touch:focus-visible { outline: none; }

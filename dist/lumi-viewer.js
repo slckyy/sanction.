@@ -1,19 +1,19 @@
 import * as THREE from './vendor/three-gltf.js';
 
-// Rose prototype. Meter-scale geometry stays fixed; only this outer assembly moves.
+// Approved Rose master, shared with Violet. Only the posed outer assembly moves.
 // The static-site dependency is locally bundled Three.js 0.186.1 + GLTFLoader (MIT).
-export async function mountRose(panel) {
+export async function mountLumi(panel, { asset, label }) {
   const hero = panel.querySelector('.editorial-hero');
   const scroll = panel.querySelector('.page-scroll');
   const host = document.createElement('div');
-  host.className = 'rose-viewer';
+  host.className = 'lumi-viewer';
   hero.append(host);
   hero.removeAttribute('aria-hidden');
   const abort = new AbortController();
   const on = (target, event, fn, options = {}) => target.addEventListener(event, fn, { ...options, signal: abort.signal });
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' }); }
-  catch (error) { host.remove(); console.warn('Rose WebGL unavailable', error); return; }
+  catch (error) { host.remove(); console.warn('LUMI WebGL unavailable', error); return; }
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
@@ -23,9 +23,9 @@ export async function mountRose(panel) {
   renderer.domElement.setAttribute('aria-hidden', 'true');
   host.append(renderer.domElement);
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.classList.add('rose-touch');
+  svg.classList.add('lumi-touch');
   svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', 'Rose LUMI holding a telephone. Drag to rotate freely; drag around the edges to roll. Arrow keys turn, Q and E roll, Escape returns.');
+  svg.setAttribute('aria-label', `${label}. Drag to rotate freely; drag around the edges to roll. Arrow keys turn, Q and E roll, Escape returns.`);
   svg.setAttribute('tabindex', '0');
   host.append(svg);
   const scene = new THREE.Scene();
@@ -206,7 +206,7 @@ export async function mountRose(panel) {
     environment?.dispose(); renderer.dispose(); renderer.forceContextLoss(); host.remove();
   }
   try {
-    const gltf = await new THREE.GLTFLoader().loadAsync(new URL('./assets/rose-lumi-real.glb?v=rose-led-arm-3', import.meta.url).href);
+    const gltf = await new THREE.GLTFLoader().loadAsync(new URL(asset, import.meta.url).href);
     model = gltf.scene;
     if (disposed) { model.traverse(o => { o.geometry?.dispose(); for (const m of [].concat(o.material || [])) { for (const t of Object.values(m)) if (t?.isTexture) { t.source?.data?.close?.(); t.dispose(); } m.dispose(); } }); return; }
     model.updateMatrixWorld(true);
@@ -237,8 +237,8 @@ export async function mountRose(panel) {
       const path = document.createElementNS(svg.namespaceURI, 'path');
       svg.append(path); hitShapes.push({ mesh, points, projected: points.map(() => [0, 0]), path });
     }
-    // Bright rose cloud band sampled from the supplied atmosphere PNG; independent
-    // of the approved #F98083 linear accent factors stored in the GLB.
+    // Each asset records its own bright-cloud sample. All variants use the locked
+    // master lighting strengths, positions and renderer settings.
     const sky = new THREE.Color().fromArray(gltf.parser.json.asset.extras.atmosphere_key_linear);
     const key = new THREE.DirectionalLight(sky.clone().lerp(new THREE.Color(0xffffff), .38), 19);
     key.position.set(-.018, -.22, .065); key.castShadow = true;
@@ -289,6 +289,22 @@ export async function mountRose(panel) {
           const light = new THREE.PointLight(mesh.material.emissive.clone(), .000022, .023, 2);
           light.position.copy(scratch); assembly.add(light);
         }
+      } else if (mesh.material.name === 'LUMI_ENVELOPE_LED_DIFFUSER') {
+        // Distribute the same accessory spill along the actual V-shaped light guide.
+        const position = mesh.geometry.attributes.position, normal = mesh.geometry.attributes.normal;
+        for (let step = 0; step < 5; step++) {
+          const x = box.min.x + (box.max.x - box.min.x) * (step + .5) / 5;
+          let best = Infinity, selected = 0;
+          for (let i = 0; i < position.count; i++) {
+            scratch.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld);
+            const distance = Math.abs(scratch.x - x) + Math.max(0, box.max.z - scratch.z) * .1;
+            if (distance < best) { best = distance; selected = i; }
+          }
+          scratch.fromBufferAttribute(position, selected).applyMatrix4(mesh.matrixWorld);
+          const direction = new THREE.Vector3().fromBufferAttribute(normal, selected).transformDirection(mesh.matrixWorld);
+          const light = new THREE.PointLight(mesh.material.emissive.clone(), .000005, .024, 2);
+          light.position.copy(scratch).addScaledVector(direction, .0008); assembly.add(light);
+        }
       } else {
         pos.z = box.max.z + .0008;
         const light = new THREE.PointLight(mesh.material.emissive.clone(), .000025, .024, 2);
@@ -296,6 +312,6 @@ export async function mountRose(panel) {
       }
     }
     ready = true; resize(); wake();
-  } catch (error) { console.warn('Rose could not load', error); dispose(); }
+  } catch (error) { console.warn('LUMI could not load', error); dispose(); }
   return dispose;
 }

@@ -137,12 +137,17 @@ tabs.forEach((tab, index) => {
   });
 });
 
-// Load the Rose-only viewer on first opening CALL; no 3D work on other tabs.
-const rosePanel = document.getElementById("panel-call");
-let roseViewerLoading = false;
-new MutationObserver(() => {
-  if (rosePanel.hidden || roseViewerLoading) return;
-  roseViewerLoading = true;
-  import("./rose-viewer.js?v=rose-motion-4").then(module => module.mountRose(rosePanel))
-    .catch(error => { roseViewerLoading = false; console.warn("Rose viewer unavailable", error); });
-}).observe(rosePanel, { attributes: true, attributeFilter: ["hidden"] });
+// Load only the authorized characters, on first opening their existing tabs.
+for (const [id, asset, label] of [
+  ["call", "./assets/rose-lumi-real.glb?v=rose-led-arm-3", "Rose LUMI holding a telephone"],
+  ["email", "./assets/violet-lumi-real.glb?v=violet-master-1", "Violet LUMI holding a black paper envelope"]
+]) {
+  const panel = document.getElementById("panel-" + id);
+  let loading = false;
+  new MutationObserver(() => {
+    if (panel.hidden || loading) return;
+    loading = true;
+    import("./lumi-viewer.js?v=violet-master-1").then(module => module.mountLumi(panel, { asset, label }))
+      .catch(error => { loading = false; console.warn("LUMI viewer unavailable", error); });
+  }).observe(panel, { attributes: true, attributeFilter: ["hidden"] });
+}
