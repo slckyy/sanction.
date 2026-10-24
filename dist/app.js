@@ -143,6 +143,6 @@ let roseViewerLoading = false;
 new MutationObserver(() => {
   if (rosePanel.hidden || roseViewerLoading) return;
   roseViewerLoading = true;
-  import("./rose-viewer.js?v=rose-free-rotation-2").then(module => module.mountRose(rosePanel))
+  import("./rose-viewer.js?v=rose-led-arm-3").then(module => module.mountRose(rosePanel))
     .catch(error => { roseViewerLoading = false; console.warn("Rose viewer unavailable", error); });
 }).observe(rosePanel, { attributes: true, attributeFilter: ["hidden"] });

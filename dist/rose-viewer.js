@@ -200,7 +200,7 @@ export async function mountRose(panel) {
     environment?.dispose(); renderer.dispose(); renderer.forceContextLoss(); host.remove();
   }
   try {
-    const gltf = await new THREE.GLTFLoader().loadAsync(new URL('./assets/rose-lumi-real.glb?v=rose-master-1', import.meta.url).href);
+    const gltf = await new THREE.GLTFLoader().loadAsync(new URL('./assets/rose-lumi-real.glb?v=rose-led-arm-3', import.meta.url).href);
     model = gltf.scene;
     if (disposed) { model.traverse(o => { o.geometry?.dispose(); for (const m of [].concat(o.material || [])) { for (const t of Object.values(m)) if (t?.isTexture) { t.source?.data?.close?.(); t.dispose(); } m.dispose(); } }); return; }
     model.updateMatrixWorld(true);
@@ -260,13 +260,34 @@ export async function mountRose(panel) {
     scene.environment = environment.texture; scene.environmentIntensity = 1.1;
     texture.dispose(); pmrem.dispose();
     // Local emitters travel with their optical parts; the fixed light below doesn't.
-    for (const mesh of meshes.filter(o => /ILLUMINATED_RIM|ROSE_SLIT/.test(o.name))) {
+    for (const mesh of meshes.filter(o => /LED_DIFFUSER/.test(o.material?.name))) {
       const box = new THREE.Box3().setFromObject(mesh), pos = box.getCenter(new THREE.Vector3());
-      const eye = mesh.name.includes('EYE');
-      pos.z = box.max.z + .0015;
-      if (eye) pos.y -= .004;
-      const light = new THREE.PointLight(mesh.material.emissive.clone(), eye ? .000060 : .000008, eye ? .034 : .024, 2);
-      light.position.copy(pos); assembly.add(light);
+      const eye = mesh.material.name === 'LUMI_EYE_LED_DIFFUSER';
+      if (eye) {
+        // Spill follows the actual luminous rim; the recessed center is plastic.
+        const position = mesh.geometry.attributes.position, normal = mesh.geometry.attributes.normal;
+        const indices = [...new Set(mesh.geometry.index.array)];
+        for (let step = 0; step < 8; step++) {
+          const angle = step * Math.PI / 4;
+          const target = new THREE.Vector3(pos.x + Math.cos(angle) * (box.max.x - box.min.x) * .47,
+            pos.y + Math.sin(angle) * (box.max.y - box.min.y) * .47, box.max.z);
+          let best = Infinity, selected = 0;
+          for (const i of indices) {
+            scratch.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld);
+            const distance = scratch.distanceToSquared(target);
+            if (distance < best) { best = distance; selected = i; }
+          }
+          scratch.fromBufferAttribute(position, selected).applyMatrix4(mesh.matrixWorld);
+          const direction = new THREE.Vector3().fromBufferAttribute(normal, selected).transformDirection(mesh.matrixWorld);
+          scratch.addScaledVector(direction, .00055);
+          const light = new THREE.PointLight(mesh.material.emissive.clone(), .000022, .023, 2);
+          light.position.copy(scratch); assembly.add(light);
+        }
+      } else {
+        pos.z = box.max.z + .0008;
+        const light = new THREE.PointLight(mesh.material.emissive.clone(), .000025, .024, 2);
+        light.position.copy(pos); assembly.add(light);
+      }
     }
     ready = true; resize(); wake();
   } catch (error) { console.warn('Rose could not load', error); dispose(); }
