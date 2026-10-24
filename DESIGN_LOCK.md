@@ -22,6 +22,14 @@ Locked presentation and behavior:
 
 For subsequent characters, reuse this viewer and material/lighting approach with their own approved poses, accessories, colors, atmosphere references, and existing page content. Fit each full assembly proportionally rather than copying Rose's dimensions or pose. Do not invent variant-specific layout or interaction changes. Further changes to the approved master require an explicit owner request.
 
+### Approved texture and material master
+
+The owner explicitly approved Rose itself on 2026-10-24 and instructed: "re-use those textures on the lumi's and objects as we go forward." Use the actual embedded textures and material definitions in the approved `dist/assets/rose-lumi-real.glb` as the master for future characters and accessories.
+
+- Reuse the approved fine charcoal leather normal/roughness textures and finish on corresponding body surfaces. Adapt UV placement where needed to maintain the same physical grain scale without stretching or visible seams.
+- Reuse the approved black molded plastic, matte finishes, and powered LED material system on corresponding accessory and face surfaces, respecting each object's existing material partitions.
+- Preserve each variant's approved geometry, pose, accessory design, and distinct accent colors. Reusing Rose's finishes does not transfer Rose's hue to the other variants or make every accessory surface leather.
+
 This lock records approval of Rose; it does not authorize starting the other four characters. Implement each when requested. The earlier empty-hero instruction below applies only to characters not yet authorized for integration.
 
 ## Authoritative baseline
