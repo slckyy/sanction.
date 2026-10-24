@@ -211,7 +211,7 @@ body { overscroll-behavior: none; }
 }
 
 /* Authorized LUMIs occupy the reserved hero without participating in page flow. */
-#panel-call .editorial-hero, #panel-email .editorial-hero, #panel-clients .editorial-hero, #panel-events .editorial-hero { position: relative; }
+#panel-call .editorial-hero, #panel-email .editorial-hero, #panel-clients .editorial-hero, #panel-events .editorial-hero, #panel-notes .editorial-hero { position: relative; }
 .lumi-viewer {
   position: absolute;
   top: calc(env(safe-area-inset-top, 0px) + 61px);
