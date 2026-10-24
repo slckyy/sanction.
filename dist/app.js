@@ -140,14 +140,17 @@ tabs.forEach((tab, index) => {
 // Load only the authorized characters, on first opening their existing tabs.
 for (const [id, asset, label] of [
   ["call", "./assets/rose-lumi-real.glb?v=rose-led-arm-3", "Rose LUMI holding a telephone"],
-  ["email", "./assets/violet-lumi-real.glb?v=violet-master-1", "Violet LUMI holding a black paper envelope"]
+  ["email", "./assets/violet-lumi-real.glb?v=violet-master-1", "Violet LUMI holding a black paper envelope"],
+  ["clients", "./assets/blue-lumi-real.glb?v=blue-master-1", "Blue LUMI presenting a black plastic contact card"]
 ]) {
   const panel = document.getElementById("panel-" + id);
   let loading = false;
-  new MutationObserver(() => {
+  const mountWhenVisible = () => {
     if (panel.hidden || loading) return;
     loading = true;
     import("./lumi-viewer.js?v=violet-master-1").then(module => module.mountLumi(panel, { asset, label }))
       .catch(error => { loading = false; console.warn("LUMI viewer unavailable", error); });
-  }).observe(panel, { attributes: true, attributeFilter: ["hidden"] });
+  };
+  new MutationObserver(mountWhenVisible).observe(panel, { attributes: true, attributeFilter: ["hidden"] });
+  mountWhenVisible();
 }
