@@ -136,3 +136,13 @@ tabs.forEach((tab, index) => {
     tabs[next].focus();
   });
 });
+
+// Load the Rose-only viewer on first opening CALL; no 3D work on other tabs.
+const rosePanel = document.getElementById("panel-call");
+let roseViewerLoading = false;
+new MutationObserver(() => {
+  if (rosePanel.hidden || roseViewerLoading) return;
+  roseViewerLoading = true;
+  import("./rose-viewer.js?v=rose-master-1").then(module => module.mountRose(rosePanel))
+    .catch(error => { roseViewerLoading = false; console.warn("Rose viewer unavailable", error); });
+}).observe(rosePanel, { attributes: true, attributeFilter: ["hidden"] });

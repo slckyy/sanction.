@@ -209,3 +209,20 @@ body { overscroll-behavior: none; }
 @media (min-width: 600px) and (orientation: landscape) {
   .app { width: min(100%, max(320px, calc(var(--app-height) * 430 / 932))); }
 }
+
+/* Rose occupies the already-reserved hero without participating in page flow. */
+#panel-call .editorial-hero { position: relative; }
+.rose-viewer {
+  position: absolute;
+  top: calc(env(safe-area-inset-top, 0px) + 61px);
+  bottom: 14px;
+  left: max(8px, env(safe-area-inset-left, 0px));
+  right: max(8px, env(safe-area-inset-right, 0px));
+  overflow: hidden;
+  pointer-events: none;
+}
+.rose-viewer canvas, .rose-touch { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.rose-touch { overflow: hidden; pointer-events: none; touch-action: none; }
+.rose-touch path { fill: transparent; pointer-events: fill; touch-action: none; cursor: grab; }
+.rose-viewer.is-dragging .rose-touch path { cursor: grabbing; }
+.rose-touch:focus-visible { outline: none; }
