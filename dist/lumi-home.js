@@ -66,6 +66,25 @@ export function mountLumiHome(panel, items, onSelect) {
     transparent: true, depthWrite: false, depthTest: false
   });
   const quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), quadMaterial); composite.add(quad);
+  // Visible light haze under the selected model, paired with its real underlight.
+  // It stays in the home renderer; no floor or glow geometry enters the GLBs.
+  const glowScene = new THREE.Scene();
+  const glowMaterial = new THREE.ShaderMaterial({
+    uniforms: { center: { value: new THREE.Vector2() }, spread: { value: new THREE.Vector2() },
+      color: { value: new THREE.Color() }, power: { value: 0 } },
+    vertexShader: quadMaterial.vertexShader,
+    fragmentShader: `uniform vec2 center; uniform vec2 spread; uniform vec3 color; uniform float power; varying vec2 vUv;
+      void main(){
+        vec2 p=(vUv-center)/spread;
+        float haze=exp(-dot(p,p)*2.5);
+        float core=exp(-p.x*p.x*5.0-p.y*p.y*28.0);
+        gl_FragColor=vec4(color*(0.7+0.3*core),min(0.9,(0.55*haze+0.65*core)*power));
+        #include <tonemapping_fragment>
+        #include <colorspace_fragment>
+      }`,
+    transparent: true, depthWrite: false, depthTest: false
+  });
+  glowScene.add(new THREE.Mesh(quad.geometry, glowMaterial));
   const pmrem = new THREE.PMREMGenerator(renderer);
   function makeEnvironment(sky, powered) {
     const w = 128, h = 64, data = new Float32Array(w * h * 4);
@@ -151,7 +170,7 @@ export function mountLumiHome(panel, items, onSelect) {
       const labelScale = Math.max(.46, scale * .32 / (.32 - depth));
       e.button.style.left = `${(labelPoint.x * .5 + .5) * width}px`; e.button.style.top = `${(-labelPoint.y * .5 + .5) * height}px`;
       e.button.style.transform = `translate(-50%, -50%) scale(${labelScale})`; e.button.style.opacity = String(opacity);
-      e.button.style.zIndex = String(10 - Math.round(distance * 2));
+      e.button.style.zIndex = String(e.i === selected ? 30 : 10 - Math.round(distance * 2));
       if (!e.scene) continue;
       const phase = [1.1, 2.6, 0, 4.2, 5.5][e.i], moving = motion.matches ? 0 : 1;
       e.placement.position.set(x, .008 + moving * .0016 * Math.sin(elapsed * (3.1 + e.i * .31) + phase), depth);
@@ -167,6 +186,15 @@ export function mountLumiHome(panel, items, onSelect) {
       e.scene.environment = e.weight > .5 ? e.environment.texture : neutralEnvironment.texture;
       e.scene.environmentIntensity = .75 + .35 * e.weight;
       for (const light of e.lights) light.intensity = light.userData.power * s * s * e.weight;
+      if (e.i === selected) {
+        scratch.set(x, .008 - .063 * scale, depth).project(camera);
+        const viewHeight = 2 * (.32 - depth) * Math.tan(16 * Math.PI / 180);
+        glowMaterial.uniforms.center.value.set(scratch.x * .5 + .5, scratch.y * .5 + .5);
+        glowMaterial.uniforms.spread.value.set(.062 * scale / (viewHeight * camera.aspect), .018 * scale / viewHeight);
+        glowMaterial.uniforms.color.value.copy(e.glowColor);
+        glowMaterial.uniforms.power.value = e.weight;
+        renderer.setRenderTarget(null); renderer.render(glowScene, quadCamera);
+      }
       renderer.setRenderTarget(renderTarget); renderer.clear(); renderer.render(e.scene, camera);
       renderer.setRenderTarget(null); quadMaterial.uniforms.opacity.value = opacity; renderer.render(composite, quadCamera);
     }
@@ -193,6 +221,7 @@ export function mountLumiHome(panel, items, onSelect) {
     });
     e.normalization = .065 / radius;
     const sky = new THREE.Color().fromArray(gltf.parser.json.asset.extras.atmosphere_key_linear);
+    e.glowColor = sky.clone();
     e.environment = makeEnvironment(sky, true);
     e.key = new THREE.DirectionalLight(sky.clone().lerp(new THREE.Color(0xffffff), .38), 19); e.key.castShadow = true;
     e.key.shadow.mapSize.set(512, 512); Object.assign(e.key.shadow.camera, { left: -.14, right: .14, top: .14, bottom: -.14, near: .005, far: 1 });
@@ -227,7 +256,7 @@ export function mountLumiHome(panel, items, onSelect) {
   function dispose() {
     if (disposed) return; disposed = true; stop(); abort.abort(); resizeObserver.disconnect(); panelObserver.disconnect();
     for (const e of entries) { if (e.model) freeModel(e.model); e.environment?.dispose(); e.key?.shadow.map?.dispose(); e.button.remove(); }
-    neutralEnvironment.dispose(); pmrem.dispose(); renderTarget.dispose(); quad.geometry.dispose(); quadMaterial.dispose(); renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove();
+    neutralEnvironment.dispose(); pmrem.dispose(); renderTarget.dispose(); quad.geometry.dispose(); quadMaterial.dispose(); glowMaterial.dispose(); renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove();
   }
   renderReady = true; resize();
   // Give Blue first access to decoding/compilation; the other four also remain live.
