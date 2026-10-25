@@ -107,6 +107,11 @@ window.addEventListener("resize", () => {
 });
 function updateEntry() {
   const page = pageContent[selectedLumi];
+  const isHome = activePage === "home";
+  const badge = document.querySelector("#home-lumi-" + page.id + " .color-badge")
+    || document.querySelector("#panel-" + page.id + " .color-badge");
+  enterButton.parentElement.style.setProperty("--entry-background", isHome ? getComputedStyle(badge).backgroundColor : "#000");
+  enterButton.parentElement.style.setProperty("--entry-foreground", isHome ? "#000" : "#fff");
   enterButton.textContent = activePage === "home" ? "ENTER " + page.id.toUpperCase() : "RETURN TO SANCTION";
   enterButton.setAttribute("aria-controls", "panel-" + (activePage === "home" ? page.id : "home"));
 }
