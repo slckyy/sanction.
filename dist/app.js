@@ -18,7 +18,7 @@ const pageContent = [
     description: "The space where all of your prospect events are scheduled.",
     photo: "jade-photo.png", alt: "Jade LUMI in a jade-toned street-fashion editorial.",
     prefix: "", singular: "event", plural: "events", suffix: " scheduled", list: "scheduled-events" },
-  { id: "notes", title: "Notes • Everything", color: "GOLDEN", lumi: "MASTER LUMI",
+  { id: "notes", title: "Notes • Everything", color: "GOLDEN", lumi: "NOTER LUMI",
     description: "The space where everything about anything is documented.",
     photo: "golden-photo.png", alt: "Golden LUMI in a golden-toned street-fashion editorial.",
     prefix: "", singular: "note", plural: "notes", suffix: " written", list: "written-notes" }
