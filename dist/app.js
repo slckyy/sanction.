@@ -105,14 +105,10 @@ function scheduleSceneBlur(state) {
 window.addEventListener("resize", () => {
   pageStates.filter(state => !state.panel.hidden).forEach(scheduleSceneBlur);
 });
+const managerNames = { call: "CALL", email: "EMAIL", clients: "CLIENT", events: "EVENT", notes: "NOTE" };
 function updateEntry() {
   const page = pageContent[selectedLumi];
-  const isHome = activePage === "home";
-  const badge = document.querySelector("#home-lumi-" + page.id + " .color-badge")
-    || document.querySelector("#panel-" + page.id + " .color-badge");
-  enterButton.parentElement.style.setProperty("--entry-background", isHome ? getComputedStyle(badge).backgroundColor : "#000");
-  enterButton.parentElement.style.setProperty("--entry-foreground", "#fff");
-  enterButton.textContent = activePage === "home" ? "OPEN " + page.id.toUpperCase() + "." : "RETURN TO SANCTION";
+  enterButton.textContent = activePage === "home" ? "OPEN " + managerNames[page.id] + " MANAGER." : "RETURN TO SANCTION";
   enterButton.setAttribute("aria-controls", "panel-" + (activePage === "home" ? page.id : "home"));
 }
 function showPage(id) {
@@ -141,7 +137,7 @@ const lumiAssets = [
   ["events", "./assets/jade-lumi-real.glb?v=jade-master-1", "Jade LUMI presenting a hovering calendar with metal binding rings"],
   ["notes", "./assets/golden-lumi-real.glb?v=golden-master-1", "Golden LUMI writing in a black cardboard notebook with a stylus"]
 ];
-import("./lumi-home.js?v=home-open-1").then(module => {
+import("./lumi-home.js?v=home-managers-1").then(module => {
   homeViewer = module.mountLumiHome(homePanel, pageContent.map((page, i) => ({ ...page, asset: lumiAssets[i][1], label: lumiAssets[i][2] })), index => {
     selectedLumi = index; updateEntry();
   });

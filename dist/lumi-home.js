@@ -166,10 +166,8 @@ export function mountLumiHome(panel, items, onSelect) {
       e.weight += ((e.i === selected ? 1 : 0) - e.weight) * (motion.matches ? 1 : 1 - Math.exp(-dt * 14));
       if (e.weight < .0001) e.weight = 0; if (e.weight > .9999) e.weight = 1;
       const ghost = .28 / (1 + distance * .4), opacity = ghost + (1 - ghost) * e.weight;
-      // The entire row follows the same depth/position as its own LUMI.
-      // Its centered position lands just above the navigation button.
-      const labelY = -.32 * Math.tan(16 * Math.PI / 180) * (1 - 36 / height);
-      labelPoint.set(x, labelY * scale, depth).project(camera);
+      // Keep each title close beneath its own LUMI as the lineup moves in depth.
+      labelPoint.set(x, .008 - .078 * scale, depth).project(camera);
       const labelScale = Math.max(.46, scale * .32 / (.32 - depth));
       e.button.style.left = `${(labelPoint.x * .5 + .5) * width}px`; e.button.style.top = `${(-labelPoint.y * .5 + .5) * height}px`;
       e.button.style.transform = `translate(-50%, -50%) scale(${labelScale})`; e.button.style.opacity = String(opacity);
