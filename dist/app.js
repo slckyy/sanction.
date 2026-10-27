@@ -149,10 +149,9 @@ const lumiAssets = [
 const startupScreen = document.getElementById("startup-screen");
 const app = document.querySelector(".app");
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
-const curtain = document.getElementById("page-curtain");
 const progressBar = document.getElementById("startup-progress");
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-const FADE_MS = 1275;
+const FADE_MS = 637.5;
 const preparations = new Map();
 const imageDecodes = new WeakMap();
 let navigating = false;
@@ -191,25 +190,38 @@ async function navigate(id, resetHome = false) {
   navigating = true;
   app.inert = true;
   app.setAttribute("aria-busy", "true");
-  curtain.hidden = false;
   const previous = activePage;
+  const outgoing = document.getElementById("panel-" + previous);
+  const incoming = document.getElementById("panel-" + id);
+  let oldNavigation;
   try {
-    // Start readiness checks immediately, and hide the switch beneath solid black.
-    const results = await Promise.allSettled([preparePage(id), fade(curtain, 0, 1, FADE_MS / 2)]);
-    const failure = results.find(result => result.status === "rejected");
-    if (failure) throw failure.reason;
+    await preparePage(id);
+    // Keep the live outgoing page above the prepared destination. Its opacity
+    // reveals the destination directly, just like the startup screen's dissolve.
+    oldNavigation = enterButton.parentElement.cloneNode(true);
+    oldNavigation.removeAttribute("aria-label");
+    oldNavigation.setAttribute("aria-hidden", "true");
+    oldNavigation.inert = true;
+    oldNavigation.querySelectorAll("[id]").forEach(node => node.removeAttribute("id"));
+    oldNavigation.classList.add("transition-navigation");
+    outgoing.append(oldNavigation);
+    outgoing.classList.add("is-page-outgoing");
+    incoming.classList.add("is-page-incoming");
     if (resetHome) homeViewer?.select(2, true);
     showPage(id);
+    outgoing.hidden = false;
     // Visibility observers resize/wake the resident renderer before the reveal.
     await nextFrame(); await nextFrame(); await nextFrame();
-    await fade(curtain, 1, 0, FADE_MS / 2);
+    await fade(outgoing, 1, 0);
+    outgoing.hidden = true;
   } catch (error) {
     console.warn("SANCTION page could not be prepared", error);
-    showPage(previous);
-    await nextFrame(); await nextFrame();
-    await fade(curtain, Number(getComputedStyle(curtain).opacity), 0, FADE_MS / 2);
+    if (activePage !== previous) showPage(previous);
   } finally {
-    curtain.hidden = true;
+    oldNavigation?.remove();
+    outgoing.classList.remove("is-page-outgoing");
+    outgoing.style.removeProperty("opacity");
+    incoming?.classList.remove("is-page-incoming");
     app.inert = false;
     app.removeAttribute("aria-busy");
     navigating = false;
