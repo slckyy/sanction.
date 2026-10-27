@@ -70,6 +70,14 @@ function countInWords(count) {
 }
 
 const homePanel = document.getElementById("panel-home");
+// Reuse the exact manager photographs and include them in startup image decoding.
+const homeBackgroundTrack = homePanel.querySelector(".home-background-track");
+for (const page of pageContent) {
+  const image = document.querySelector("#panel-" + page.id + " .background").cloneNode();
+  image.className = "home-background";
+  image.dataset.page = page.id;
+  homeBackgroundTrack.append(image);
+}
 const enterButton = document.getElementById("workspace-enter");
 let selectedLumi = 2, activePage = "home", homeViewer;
 const pageStates = pageContent.map(page => {
@@ -284,7 +292,7 @@ async function startApp() {
     const fontsReady = track(document.fonts.ready);
     const modules = Promise.all([
       track(import("./lumi-assets.js?v=startup-1")),
-      track(import("./lumi-home.js?v=transitions-2")),
+      track(import("./lumi-home.js?v=home-backgrounds-1")),
       track(import("./lumi-viewer.js?v=startup-1"))
     ]);
     const prepareModels = modules.then(async ([assetModule, homeModule, viewerModule]) => {

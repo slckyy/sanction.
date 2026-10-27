@@ -231,10 +231,14 @@ html, body { overscroll-behavior: none; }
 
 /* The home page shares the existing type, safe areas and navigation footprint. */
 .panel-home { background: #000; color: #fff; color-scheme: dark; }
+.home-backgrounds { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.home-background-track { display: flex; width: 100%; height: 100%; transform: translate3d(-200%, 0, 0); will-change: transform; }
+.home-background { display: block; flex: 0 0 100%; min-width: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; user-select: none; }
 .panel-home .page-title h1 { color: #fff; }
 .panel-home .color-badge { color: #fff; }
 .home-content {
   position: absolute;
+  z-index: 0;
   inset: calc(env(safe-area-inset-top, 0px) + 88px) 0 calc(env(safe-area-inset-bottom, 0px) + 80px);
   display: grid;
   grid-template-rows: minmax(190px, 1fr);

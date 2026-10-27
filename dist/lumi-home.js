@@ -5,11 +5,19 @@ import { loadLumi } from './lumi-assets.js?v=startup-1';
 // one opacity so ghosting never exposes its hidden interior construction.
 export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepared = () => {} } = {}) {
   const host = panel.querySelector('.home-selector');
+  const backgroundTrack = panel.querySelector('.home-background-track');
   const abort = new AbortController();
   const on = (target, type, fn, options = {}) => target.addEventListener(type, fn, { ...options, signal: abort.signal });
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const badges = ['#F28B96', '#C394EE', '#86A5FF', '#78D9B5', '#F3B363'];
   let selected = 2, position = 2, target = 2, pointer = null, wheelAt = 0;
+  let backgroundPosition = NaN;
+  function syncBackground() {
+    if (backgroundPosition === position) return;
+    backgroundTrack.style.transform = `translate3d(${-position * 100}%, 0, 0)`;
+    backgroundPosition = position;
+  }
+  syncBackground();
   let frame = 0, last = 0, elapsed = 0, disposed = false, renderReady = false, width = 1, height = 1;
   const entries = items.map((item, i) => {
     const button = document.createElement('button');
@@ -31,6 +39,7 @@ export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepar
   function select(index, instant = false) {
     selected = Math.round(clamp(index)); target = selected;
     if (instant || motion.matches) position = target;
+    syncBackground();
     announce(); wake();
   }
   announce();
@@ -158,6 +167,8 @@ export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepar
     const dt = last ? Math.min((ms - last) / 1000, .1) : 1 / 60; last = ms; elapsed += dt;
     if (!pointer) position += (target - position) * (motion.matches ? 1 : 1 - Math.exp(-dt * 13));
     if (Math.abs(target - position) < .0001) position = target;
+    // Use the same fractional position as the LUMIs, including drag and settling.
+    syncBackground();
     renderer.setRenderTarget(null); renderer.clear();
     const ordered = [...entries].sort((a, b) => Math.abs(b.i - position) - Math.abs(a.i - position));
     for (const e of ordered) {
