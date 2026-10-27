@@ -3,6 +3,7 @@
   color-scheme: dark;
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   background: #000;
+  color: #fff;
 }
 * { box-sizing: border-box; }
 @supports (height: 100dvh) {
@@ -34,7 +35,7 @@ html, body { overscroll-behavior: none; }
   --page-accent: #86A5FF;
   --blur-start: calc(max(370px, var(--app-height) * .60) - 180px);
   --blur-span: clamp(360px, calc(var(--app-height) * .58), 600px);
-  color: #000;
+  color: #fff;
   color-scheme: light;
 }
 #panel-call { --page-accent: #F28B96; }
@@ -100,7 +101,7 @@ html, body { overscroll-behavior: none; }
 }
 .page-title h1 {
   margin: 0;
-  color: #000;
+  color: #fff;
   font-weight: 400;
   font-size: 15px;
   line-height: 24px;
@@ -132,7 +133,7 @@ html, body { overscroll-behavior: none; }
   padding: 4px 8px;
   border-radius: 20px;
   background: var(--page-accent);
-  color: #000;
+  color: #fff;
   letter-spacing: 0;
 }
 .editorial-description, .clients-section h2 {
@@ -184,7 +185,7 @@ html, body { overscroll-behavior: none; }
   border: 0;
   border-radius: 0;
   background: transparent;
-  color: #8a8a8a;
+  color: #fff;
   font-family: inherit;
   font-size: clamp(10px, 2.8cqw, 12px);
   font-weight: 600;
