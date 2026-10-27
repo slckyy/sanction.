@@ -128,9 +128,15 @@ function openHome() {
   homeViewer?.select(2, true);
   showPage("home");
 }
-enterButton.addEventListener("click", () => showPage(activePage === "home" ? pageContent[selectedLumi].id : "home"));
-window.addEventListener("pageshow", openHome);
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") openHome(); });
+enterButton.addEventListener("click", () => navigate(activePage === "home" ? pageContent[selectedLumi].id : "home"));
+function restoreHome() {
+  if (app.dataset.startupReady !== "true" || navigating) return;
+  selectedLumi = 2;
+  if (activePage === "home") { homeViewer?.select(2, true); updateEntry(); }
+  else navigate("home", true);
+}
+window.addEventListener("pageshow", restoreHome);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") restoreHome(); });
 
 // Prepare every page behind the startup screen before enabling navigation.
 const lumiAssets = [
@@ -143,60 +149,159 @@ const lumiAssets = [
 const startupScreen = document.getElementById("startup-screen");
 const app = document.querySelector(".app");
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
+const curtain = document.getElementById("page-curtain");
+const progressBar = document.getElementById("startup-progress");
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+const FADE_MS = 2550;
+const preparations = new Map();
+const imageDecodes = new WeakMap();
+let navigating = false;
+
+// Future async page features register here; every navigation awaits their work.
+function preloadPage(id, preparation) {
+  if (!preparations.has(id)) preparations.set(id, new Set());
+  const promise = Promise.resolve().then(() => typeof preparation === "function" ? preparation() : preparation);
+  preparations.get(id).add(promise);
+  promise.catch(() => {}); // Errors are surfaced by the startup/navigation gate.
+  return promise;
+}
+window.Sanction = Object.freeze({ preload: preloadPage, navigate });
+
+async function preparePage(id) {
+  const panel = document.getElementById("panel-" + id);
+  if (!panel) throw new Error("Unknown SANCTION page: " + id);
+  const tasks = preparations.get(id);
+  if (tasks) {
+    let count;
+    do { count = tasks.size; await Promise.all([...tasks]); } while (count !== tasks.size);
+  }
+  await Promise.all([document.fonts.ready, ...[...panel.querySelectorAll("img")].map(decodePageImage)]);
+}
+async function fade(element, from, to, duration = FADE_MS) {
+  const animation = element.animate([{ opacity: from }, { opacity: to }], {
+    duration: reducedMotion.matches ? 120 : duration,
+    easing: "cubic-bezier(.22, 1, .36, 1)", fill: "forwards"
+  });
+  await animation.finished;
+  element.style.opacity = String(to);
+  animation.cancel();
+}
+async function navigate(id, resetHome = false) {
+  if (navigating || app.inert || id === activePage) return;
+  navigating = true;
+  app.inert = true;
+  app.setAttribute("aria-busy", "true");
+  curtain.hidden = false;
+  const previous = activePage;
+  try {
+    // Start readiness checks immediately, and hide the switch beneath solid black.
+    const results = await Promise.allSettled([preparePage(id), fade(curtain, 0, 1, FADE_MS / 2)]);
+    const failure = results.find(result => result.status === "rejected");
+    if (failure) throw failure.reason;
+    if (resetHome) homeViewer?.select(2, true);
+    showPage(id);
+    // Visibility observers resize/wake the resident renderer before the reveal.
+    await nextFrame(); await nextFrame(); await nextFrame();
+    await fade(curtain, 1, 0, FADE_MS / 2);
+  } catch (error) {
+    console.warn("SANCTION page could not be prepared", error);
+    showPage(previous);
+    await nextFrame(); await nextFrame();
+    await fade(curtain, Number(getComputedStyle(curtain).opacity), 0, FADE_MS / 2);
+  } finally {
+    curtain.hidden = true;
+    app.inert = false;
+    app.removeAttribute("aria-busy");
+    navigating = false;
+  }
+}
 document.getElementById("startup-retry").addEventListener("click", () => location.reload());
 
 function decodePageImage(image) {
-  return new Promise((resolve, reject) => {
+  const source = [image.currentSrc, image.src, image.srcset, image.sizes].join("|");
+  const cached = imageDecodes.get(image);
+  if (cached?.source === source) return cached.promise;
+  image.loading = "eager";
+  const promise = new Promise((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error("Page image load timed out")), 60000);
     image.decode().then(resolve, reject).finally(() => clearTimeout(timeout));
   });
+  imageDecodes.set(image, { source, promise });
+  promise.catch(() => { if (imageDecodes.get(image)?.promise === promise) imageDecodes.delete(image); });
+  return promise;
 }
+// New/changed page images are warmed automatically, even on hidden pages.
+new MutationObserver(records => {
+  const images = new Set();
+  for (const record of records) {
+    if (record.type === "attributes") images.add(record.target);
+    for (const node of record.addedNodes || []) {
+      if (node.nodeType !== Node.ELEMENT_NODE) continue;
+      if (node.matches("img")) images.add(node);
+      node.querySelectorAll("img").forEach(image => images.add(image));
+    }
+  }
+  images.forEach(image => { if (image.matches("img") && image.src) decodePageImage(image).catch(() => {}); });
+}).observe(app, { subtree: true, childList: true, attributes: true, attributeFilter: ["src", "srcset", "sizes"] });
+
 async function startApp() {
   const disposeManagers = [];
   let assets;
   try {
     // Paint the loader before starting model decoding and shader compilation.
     await nextFrame(); await nextFrame();
-    const imageReady = Promise.all([...document.images].map(decodePageImage));
+    const images = [...document.images];
+    // Completed work units, not an invented timer or a claimed byte percentage.
+    const total = images.length + 1 + 3 + lumiAssets.length * 3 + 1;
+    let completed = 0;
+    const advance = () => {
+      const value = Math.round(++completed / total * 100);
+      progressBar.setAttribute("aria-valuenow", String(value));
+      progressBar.setAttribute("aria-valuetext", `${completed} of ${total} preparation steps complete`);
+      progressBar.firstElementChild.style.transform = `scaleX(${completed / total})`;
+    };
+    const track = promise => promise.then(value => { advance(); return value; });
+    const imageReady = Promise.all(images.map(image => track(decodePageImage(image))));
+    const fontsReady = track(document.fonts.ready);
     const modules = Promise.all([
-      import("./lumi-assets.js?v=startup-1"),
-      import("./lumi-home.js?v=startup-1"),
-      import("./lumi-viewer.js?v=startup-1")
+      track(import("./lumi-assets.js?v=startup-1")),
+      track(import("./lumi-home.js?v=transitions-2")),
+      track(import("./lumi-viewer.js?v=startup-1"))
     ]);
     const prepareModels = modules.then(async ([assetModule, homeModule, viewerModule]) => {
       assets = assetModule;
-      await Promise.all(lumiAssets.map(([, asset]) => assets.preloadLumi(asset)));
+      await Promise.all(lumiAssets.map(([, asset]) => track(assets.preloadLumi(asset))));
       homeViewer = homeModule.mountLumiHome(homePanel, pageContent.map((page, i) => ({ ...page, asset: lumiAssets[i][1], label: lumiAssets[i][2] })), index => {
         selectedLumi = index; updateEntry();
-      }, { paused: true });
-      await homeViewer.ready;
+      }, { paused: true, onPrepared: advance });
+      await preloadPage("home", homeViewer.ready);
       for (const [id, asset, label] of lumiAssets) {
         const panel = document.getElementById("panel-" + id);
         panel.classList.add("is-preparing");
         try {
-          disposeManagers.push(await viewerModule.mountLumi(panel, { asset, label }));
+          disposeManagers.push(await preloadPage(id, viewerModule.mountLumi(panel, { asset, label })));
+          advance();
           await nextFrame();
         }
         finally { panel.classList.remove("is-preparing"); }
         await nextFrame();
       }
     });
-    const results = await Promise.allSettled([imageReady, document.fonts.ready, prepareModels]);
+    const results = await Promise.allSettled([imageReady, fontsReady, prepareModels]);
     const failure = results.find(result => result.status === "rejected");
     if (failure) throw failure.reason;
+    await Promise.all([...app.querySelectorAll(".panel")].map(panel => preparePage(panel.id.replace("panel-", ""))));
     assets.releaseLumiDownloads();
     openHome(); homeViewer.resume();
     // Let the complete home scene reach the compositor before dissolving black.
     await nextFrame(); await nextFrame();
+    advance();
+    await nextFrame();
+    await Promise.all(progressBar.firstElementChild.getAnimations().map(animation => animation.finished));
+    await fade(startupScreen, 1, 0);
+    startupScreen.remove();
     app.dataset.startupReady = "true";
-    startupScreen.classList.add("is-leaving");
-    const finish = () => {
-      startupScreen.remove(); app.inert = false; app.removeAttribute("aria-busy");
-    };
-    startupScreen.addEventListener("transitionend", event => {
-      if (event.target === startupScreen && event.propertyName === "opacity") finish();
-    }, { once: true });
-    setTimeout(finish, 1000);
+    app.inert = false; app.removeAttribute("aria-busy");
   } catch (error) {
     console.warn("SANCTION startup could not finish", error);
     homeViewer?.dispose();

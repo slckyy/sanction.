@@ -3,7 +3,7 @@ import { loadLumi } from './lumi-assets.js?v=startup-1';
 
 // Five live GLBs, one WebGL context. Each whole character is composited with
 // one opacity so ghosting never exposes its hidden interior construction.
-export function mountLumiHome(panel, items, onSelect, { paused = false } = {}) {
+export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepared = () => {} } = {}) {
   const host = panel.querySelector('.home-selector');
   const abort = new AbortController();
   const on = (target, type, fn, options = {}) => target.addEventListener(type, fn, { ...options, signal: abort.signal });
@@ -267,6 +267,7 @@ export function mountLumiHome(panel, items, onSelect, { paused = false } = {}) {
       await load(entry);
       if (disposed) throw new Error('LUMI home closed during preparation');
       await renderer.compileAsync(entry.scene, camera);
+      onPrepared(entry.item.id);
     }
     await renderer.compileAsync(composite, quadCamera);
     await renderer.compileAsync(glowScene, quadCamera);
