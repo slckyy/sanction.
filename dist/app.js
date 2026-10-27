@@ -151,7 +151,7 @@ const app = document.querySelector(".app");
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const progressBar = document.getElementById("startup-progress");
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-const FADE_MS = 637.5;
+const FADE_MS = 1500;
 const preparations = new Map();
 const imageDecodes = new WeakMap();
 let navigating = false;
