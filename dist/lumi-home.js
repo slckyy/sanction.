@@ -10,7 +10,7 @@ export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepar
   const on = (target, type, fn, options = {}) => target.addEventListener(type, fn, { ...options, signal: abort.signal });
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   const badges = ['#F28B96', '#C394EE', '#86A5FF', '#78D9B5', '#F3B363'];
-  let selected = 2, position = 2, target = 2, pointer = null, wheelAt = 0;
+  let selected = 0, position = 0, target = 0, pointer = null, wheelAt = 0;
   let backgroundPosition = NaN;
   function syncBackground() {
     if (backgroundPosition === position) return;
@@ -29,7 +29,7 @@ export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepar
     const title = document.createElement('span'); title.textContent = item.lumi;
     button.append(badge, title); host.append(button);
     on(button, 'click', () => select(i));
-    return { item, button, i, weight: i === 2 ? 1 : 0, scene: null, lights: [], meshes: [] };
+    return { item, button, i, weight: i === 0 ? 1 : 0, scene: null, lights: [], meshes: [] };
   });
   function announce() {
     for (const e of entries) { e.button.setAttribute('aria-selected', String(e.i === selected)); e.button.tabIndex = e.i === selected ? 0 : -1; }
@@ -274,7 +274,7 @@ export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepar
   renderReady = true; resize();
   const ready = (async () => {
     // Downloads overlap; decode/compile in order to avoid a mobile startup spike.
-    for (const entry of [entries[2], ...entries.filter(e => e.i !== 2)]) {
+    for (const entry of entries) {
       await load(entry);
       if (disposed) throw new Error('LUMI home closed during preparation');
       await renderer.compileAsync(entry.scene, camera);

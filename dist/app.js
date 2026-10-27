@@ -79,7 +79,8 @@ for (const page of pageContent) {
   homeBackgroundTrack.append(image);
 }
 const enterButton = document.getElementById("workspace-enter");
-let selectedLumi = 2, activePage = "home", homeViewer;
+const DEFAULT_LUMI = 0;
+let selectedLumi = DEFAULT_LUMI, activePage = "home", homeViewer;
 const pageStates = pageContent.map(page => {
   const panel = document.getElementById("panel-" + page.id);
   const scroll = panel.querySelector(".page-scroll");
@@ -132,15 +133,15 @@ function showPage(id) {
   updateEntry();
 }
 function openHome() {
-  selectedLumi = 2;
-  homeViewer?.select(2, true);
+  selectedLumi = DEFAULT_LUMI;
+  homeViewer?.select(DEFAULT_LUMI, true);
   showPage("home");
 }
 enterButton.addEventListener("click", () => navigate(activePage === "home" ? pageContent[selectedLumi].id : "home"));
 function restoreHome() {
   if (app.dataset.startupReady !== "true" || navigating) return;
-  selectedLumi = 2;
-  if (activePage === "home") { homeViewer?.select(2, true); updateEntry(); }
+  selectedLumi = DEFAULT_LUMI;
+  if (activePage === "home") { homeViewer?.select(DEFAULT_LUMI, true); updateEntry(); }
   else navigate("home", true);
 }
 window.addEventListener("pageshow", restoreHome);
@@ -164,6 +165,8 @@ const FADE_MS = 1500;
 const preparations = new Map();
 const imageDecodes = new WeakMap();
 let navigating = false;
+let navigationRequest = 0, navigationGeneration = 0;
+const fadingPages = new Map();
 
 // Future async page features register here; every navigation awaits their work.
 function preloadPage(id, preparation) {
@@ -185,61 +188,86 @@ async function preparePage(id) {
   }
   await Promise.all([document.fonts.ready, ...[...panel.querySelectorAll("img")].map(decodePageImage)]);
 }
-async function fade(element, from, to, duration = FADE_MS) {
+async function fade(element, from, to, duration = FADE_MS, onAnimation = () => {}) {
   const animation = element.animate([{ opacity: from }, { opacity: to }], {
     duration: reducedMotion.matches ? 120 : duration,
     easing: "cubic-bezier(.22, 1, .36, 1)", fill: "forwards"
   });
+  onAnimation(animation);
   await animation.finished;
   element.style.opacity = String(to);
   animation.cancel();
 }
 async function navigate(id, resetHome = false) {
-  if (navigating || app.inert || id === activePage) return;
-  navigating = true;
-  app.inert = true;
-  app.setAttribute("aria-busy", "true");
-  const previous = activePage;
-  const outgoing = document.getElementById("panel-" + previous);
-  const incoming = document.getElementById("panel-" + id);
-  let oldNavigation;
+  if (app.dataset.startupReady !== "true") return;
+  const request = ++navigationRequest;
+  if (id === activePage) return;
+  let generation;
   try {
     await preparePage(id);
-    // Keep the live outgoing page above the prepared destination. Its opacity
-    // reveals the destination directly, just like the startup screen's dissolve.
-    oldNavigation = enterButton.parentElement.cloneNode(true);
-    oldNavigation.removeAttribute("aria-label");
-    oldNavigation.setAttribute("aria-hidden", "true");
-    oldNavigation.inert = true;
-    oldNavigation.querySelectorAll("[id]").forEach(node => node.removeAttribute("id"));
-    oldNavigation.classList.add("transition-navigation");
-    outgoing.append(oldNavigation);
-    outgoing.classList.add("is-page-outgoing");
-    incoming.classList.add("is-page-incoming");
-    if (resetHome) homeViewer?.select(2, true);
+    if (request !== navigationRequest || id === activePage) return;
+    generation = ++navigationGeneration;
+    navigating = true;
+    const incoming = document.getElementById("panel-" + id);
+    // Preserve the visible mixture when another button is pressed mid-fade.
+    // Convert source-over opacity to weights, then place the new page underneath.
+    let remaining = 1;
+    const layers = [...fadingPages.values()].map(layer => {
+      const opacity = Number(getComputedStyle(layer.panel).opacity);
+      const weight = remaining * opacity;
+      remaining *= 1 - opacity;
+      return { ...layer, weight };
+    });
+    layers.push({ panel: document.getElementById("panel-" + activePage), weight: remaining,
+      navigation: enterButton.parentElement.cloneNode(true) });
+    for (const layer of fadingPages.values()) clearFadingPage(layer);
+    fadingPages.clear();
+    document.querySelectorAll(".is-page-incoming").forEach(panel => panel.classList.remove("is-page-incoming"));
+    if (resetHome) homeViewer?.select(DEFAULT_LUMI, true);
     showPage(id);
-    outgoing.hidden = false;
-    outgoing.inert = true;
-    // Visibility observers resize/wake the resident renderer before the reveal.
+    incoming.classList.add("is-page-incoming");
+    let covered = 0;
+    for (const [index, layer] of layers.entries()) {
+      if (layer.panel === incoming || layer.weight < .00001) continue;
+      layer.opacity = Math.min(1, layer.weight / Math.max(.00001, 1 - covered));
+      covered += layer.weight;
+      layer.navigation.removeAttribute("aria-label");
+      layer.navigation.setAttribute("aria-hidden", "true");
+      layer.navigation.inert = true;
+      layer.navigation.querySelectorAll("[id]").forEach(node => node.removeAttribute("id"));
+      layer.navigation.classList.add("transition-navigation");
+      layer.panel.append(layer.navigation);
+      layer.panel.classList.add("is-page-outgoing");
+      layer.panel.style.zIndex = String(3 + layers.length - index);
+      layer.panel.style.opacity = String(layer.opacity);
+      layer.panel.hidden = false;
+      layer.panel.inert = true;
+      fadingPages.set(layer.panel, layer);
+    }
+    // The destination stays interactive throughout; older fades cannot clean it up.
     await nextFrame(); await nextFrame(); await nextFrame();
-    // The fading page is visual only; scrolling and touch reach the ready page.
-    app.inert = false;
-    app.removeAttribute("aria-busy");
-    await fade(outgoing, 1, 0);
-    outgoing.hidden = true;
+    if (generation !== navigationGeneration) return;
+    await Promise.all([...fadingPages.values()].map(layer =>
+      fade(layer.panel, layer.opacity, 0, FADE_MS, animation => { layer.animation = animation; })));
   } catch (error) {
-    console.warn("SANCTION page could not be prepared", error);
-    if (activePage !== previous) showPage(previous);
+    if (generation === undefined || generation === navigationGeneration) console.warn("SANCTION page could not be prepared", error);
   } finally {
-    oldNavigation?.remove();
-    outgoing.inert = false;
-    outgoing.classList.remove("is-page-outgoing");
-    outgoing.style.removeProperty("opacity");
-    incoming?.classList.remove("is-page-incoming");
-    app.inert = false;
-    app.removeAttribute("aria-busy");
-    navigating = false;
+    if (generation !== undefined && generation === navigationGeneration) {
+      for (const layer of fadingPages.values()) clearFadingPage(layer);
+      fadingPages.clear();
+      document.getElementById("panel-" + activePage).classList.remove("is-page-incoming");
+      navigating = false;
+    }
   }
+}
+function clearFadingPage(layer) {
+  layer.animation?.cancel();
+  layer.navigation.remove();
+  layer.panel.hidden = layer.panel.id !== "panel-" + activePage;
+  layer.panel.inert = false;
+  layer.panel.classList.remove("is-page-outgoing");
+  layer.panel.style.removeProperty("opacity");
+  layer.panel.style.removeProperty("z-index");
 }
 document.getElementById("startup-retry").addEventListener("click", () => location.reload());
 
@@ -292,7 +320,7 @@ async function startApp() {
     const fontsReady = track(document.fonts.ready);
     const modules = Promise.all([
       track(import("./lumi-assets.js?v=startup-1")),
-      track(import("./lumi-home.js?v=home-backgrounds-1")),
+      track(import("./lumi-home.js?v=interactive-fades-1")),
       track(import("./lumi-viewer.js?v=startup-1"))
     ]);
     const prepareModels = modules.then(async ([assetModule, homeModule, viewerModule]) => {
@@ -325,10 +353,12 @@ async function startApp() {
     advance();
     await nextFrame();
     await Promise.all(progressBar.firstElementChild.getAnimations().map(animation => animation.finished));
-    await fade(startupScreen, 1, 0);
-    startupScreen.remove();
     app.dataset.startupReady = "true";
     app.inert = false; app.removeAttribute("aria-busy");
+    startupScreen.inert = true;
+    startupScreen.style.pointerEvents = "none";
+    await fade(startupScreen, 1, 0);
+    startupScreen.remove();
   } catch (error) {
     console.warn("SANCTION startup could not finish", error);
     homeViewer?.dispose();
