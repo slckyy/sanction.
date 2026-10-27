@@ -132,7 +132,7 @@ enterButton.addEventListener("click", () => showPage(activePage === "home" ? pag
 window.addEventListener("pageshow", openHome);
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") openHome(); });
 
-// Load only the authorized characters, on first opening their existing tabs.
+// Prepare every page behind the startup screen before enabling navigation.
 const lumiAssets = [
   ["call", "./assets/rose-lumi-real.glb?v=rose-led-arm-3", "Rose LUMI holding a telephone"],
   ["email", "./assets/violet-lumi-real.glb?v=violet-master-1", "Violet LUMI holding a black paper envelope"],
@@ -140,20 +140,72 @@ const lumiAssets = [
   ["events", "./assets/jade-lumi-real.glb?v=jade-master-1", "Jade LUMI presenting a hovering calendar with metal binding rings"],
   ["notes", "./assets/golden-lumi-real.glb?v=golden-master-1", "Golden LUMI writing in a black cardboard notebook with a stylus"]
 ];
-import("./lumi-home.js?v=home-managers-1").then(module => {
-  homeViewer = module.mountLumiHome(homePanel, pageContent.map((page, i) => ({ ...page, asset: lumiAssets[i][1], label: lumiAssets[i][2] })), index => {
-    selectedLumi = index; updateEntry();
+const startupScreen = document.getElementById("startup-screen");
+const app = document.querySelector(".app");
+const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
+document.getElementById("startup-retry").addEventListener("click", () => location.reload());
+
+function decodePageImage(image) {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error("Page image load timed out")), 60000);
+    image.decode().then(resolve, reject).finally(() => clearTimeout(timeout));
   });
-}).catch(error => console.warn("LUMI selection unavailable", error));
-for (const [id, asset, label] of lumiAssets) {
-  const panel = document.getElementById("panel-" + id);
-  let loading = false;
-  const mountWhenVisible = () => {
-    if (panel.hidden || loading) return;
-    loading = true;
-    import("./lumi-viewer.js?v=home-1").then(module => module.mountLumi(panel, { asset, label }))
-      .catch(error => { loading = false; console.warn("LUMI viewer unavailable", error); });
-  };
-  new MutationObserver(mountWhenVisible).observe(panel, { attributes: true, attributeFilter: ["hidden"] });
-  mountWhenVisible();
 }
+async function startApp() {
+  const disposeManagers = [];
+  let assets;
+  try {
+    // Paint the loader before starting model decoding and shader compilation.
+    await nextFrame(); await nextFrame();
+    const imageReady = Promise.all([...document.images].map(decodePageImage));
+    const modules = Promise.all([
+      import("./lumi-assets.js?v=startup-1"),
+      import("./lumi-home.js?v=startup-1"),
+      import("./lumi-viewer.js?v=startup-1")
+    ]);
+    const prepareModels = modules.then(async ([assetModule, homeModule, viewerModule]) => {
+      assets = assetModule;
+      await Promise.all(lumiAssets.map(([, asset]) => assets.preloadLumi(asset)));
+      homeViewer = homeModule.mountLumiHome(homePanel, pageContent.map((page, i) => ({ ...page, asset: lumiAssets[i][1], label: lumiAssets[i][2] })), index => {
+        selectedLumi = index; updateEntry();
+      }, { paused: true });
+      await homeViewer.ready;
+      for (const [id, asset, label] of lumiAssets) {
+        const panel = document.getElementById("panel-" + id);
+        panel.classList.add("is-preparing");
+        try {
+          disposeManagers.push(await viewerModule.mountLumi(panel, { asset, label }));
+          await nextFrame();
+        }
+        finally { panel.classList.remove("is-preparing"); }
+        await nextFrame();
+      }
+    });
+    const results = await Promise.allSettled([imageReady, document.fonts.ready, prepareModels]);
+    const failure = results.find(result => result.status === "rejected");
+    if (failure) throw failure.reason;
+    assets.releaseLumiDownloads();
+    openHome(); homeViewer.resume();
+    // Let the complete home scene reach the compositor before dissolving black.
+    await nextFrame(); await nextFrame();
+    app.dataset.startupReady = "true";
+    startupScreen.classList.add("is-leaving");
+    const finish = () => {
+      startupScreen.remove(); app.inert = false; app.removeAttribute("aria-busy");
+    };
+    startupScreen.addEventListener("transitionend", event => {
+      if (event.target === startupScreen && event.propertyName === "opacity") finish();
+    }, { once: true });
+    setTimeout(finish, 1000);
+  } catch (error) {
+    console.warn("SANCTION startup could not finish", error);
+    homeViewer?.dispose();
+    for (const dispose of disposeManagers) dispose?.();
+    assets?.releaseLumiDownloads();
+    startupScreen.setAttribute("aria-label", "SANCTION could not load. Retry available.");
+    startupScreen.querySelector(".startup-dots").hidden = true;
+    startupScreen.querySelector(".startup-error").hidden = false;
+    document.getElementById("startup-retry").focus();
+  }
+}
+startApp();

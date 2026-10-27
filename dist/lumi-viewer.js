@@ -1,4 +1,5 @@
 import * as THREE from './vendor/three-gltf.js?v=home-1';
+import { loadLumi } from './lumi-assets.js?v=startup-1';
 
 // Approved Rose master, shared with Violet. Only the posed outer assembly moves.
 // The static-site dependency is locally bundled Three.js 0.186.1 + GLTFLoader (MIT).
@@ -13,7 +14,7 @@ export async function mountLumi(panel, { asset, label }) {
   const on = (target, event, fn, options = {}) => target.addEventListener(event, fn, { ...options, signal: abort.signal });
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: 'high-performance' }); }
-  catch (error) { host.remove(); console.warn('LUMI WebGL unavailable', error); return; }
+  catch (error) { host.remove(); abort.abort(); throw error; }
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
@@ -207,7 +208,7 @@ export async function mountLumi(panel, { asset, label }) {
     environment?.dispose(); renderer.dispose(); renderer.forceContextLoss(); host.remove();
   }
   try {
-    const gltf = await new THREE.GLTFLoader().loadAsync(new URL(asset, import.meta.url).href);
+    const gltf = await loadLumi(asset);
     model = gltf.scene;
     if (disposed) { model.traverse(o => { o.geometry?.dispose(); for (const m of [].concat(o.material || [])) { for (const t of Object.values(m)) if (t?.isTexture) { t.source?.data?.close?.(); t.dispose(); } m.dispose(); } }); return; }
     model.updateMatrixWorld(true);
@@ -312,7 +313,13 @@ export async function mountLumi(panel, { asset, label }) {
         light.position.copy(pos); assembly.add(light);
       }
     }
-    ready = true; resize(); wake();
-  } catch (error) { console.warn('LUMI could not load', error); dispose(); }
+    resize();
+    await renderer.compileAsync(scene, camera);
+    if (disposed) return dispose;
+    renderer.render(scene, camera);
+    if (renderer.getContext().isContextLost()) throw new Error('LUMI graphics context lost during preparation');
+    updateTouchShapes(); host.dataset.lumiReady = 'true';
+    ready = true; wake();
+  } catch (error) { dispose(); throw error; }
   return dispose;
 }

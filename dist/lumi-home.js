@@ -1,8 +1,9 @@
 import * as THREE from './vendor/three-gltf.js?v=home-1';
+import { loadLumi } from './lumi-assets.js?v=startup-1';
 
 // Five live GLBs, one WebGL context. Each whole character is composited with
 // one opacity so ghosting never exposes its hidden interior construction.
-export function mountLumiHome(panel, items, onSelect) {
+export function mountLumiHome(panel, items, onSelect, { paused = false } = {}) {
   const host = panel.querySelector('.home-selector');
   const abort = new AbortController();
   const on = (target, type, fn, options = {}) => target.addEventListener(type, fn, { ...options, signal: abort.signal });
@@ -43,7 +44,7 @@ export function mountLumiHome(panel, items, onSelect) {
   catch (error) {
     host.classList.add('home-selector-fallback');
     console.warn('LUMI home WebGL unavailable', error);
-    return { select, dispose() { disposed = true; abort.abort(); } };
+    return { select, ready: Promise.reject(error), dispose() { disposed = true; abort.abort(); } };
   }
   renderer.setClearColor(0, 0); renderer.autoClear = false;
   renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 1;
@@ -102,7 +103,7 @@ export function mountLumiHome(panel, items, onSelect) {
   const neutralEnvironment = makeEnvironment(new THREE.Color(0xdedee8), false);
   const scratch = new THREE.Vector3(), labelPoint = new THREE.Vector3(), ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   function stop() { cancelAnimationFrame(frame); frame = 0; last = 0; }
-  function wake() { if (renderReady && !disposed && !panel.hidden && !document.hidden && !frame) frame = requestAnimationFrame(draw); }
+  function wake() { if (!paused && renderReady && !disposed && !panel.hidden && !document.hidden && !frame) frame = requestAnimationFrame(draw); }
   function resize() {
     const rect = host.getBoundingClientRect(); if (!rect.width || !rect.height) return;
     width = rect.width; height = rect.height;
@@ -204,7 +205,7 @@ export function mountLumiHome(panel, items, onSelect) {
   }
 
   async function load(e) {
-    const gltf = await new THREE.GLTFLoader().loadAsync(new URL(e.item.asset, import.meta.url).href);
+    const gltf = await loadLumi(e.item.asset);
     if (disposed) { freeModel(gltf.scene); return; }
     const scene = e.scene = new THREE.Scene(), model = e.model = gltf.scene;
     const placement = e.placement = new THREE.Group(), assembly = e.assembly = new THREE.Group();
@@ -260,8 +261,17 @@ export function mountLumiHome(panel, items, onSelect) {
     neutralEnvironment.dispose(); pmrem.dispose(); renderTarget.dispose(); quad.geometry.dispose(); quadMaterial.dispose(); glowMaterial.dispose(); renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove();
   }
   renderReady = true; resize();
-  // Give Blue first access to decoding/compilation; the other four also remain live.
-  load(entries[2]).then(() => Promise.all(entries.filter(e => e.i !== 2).map(load)))
-    .catch(error => { console.warn('LUMI home model unavailable', error); host.setAttribute('aria-invalid', 'true'); });
-  return { select, dispose };
+  const ready = (async () => {
+    // Downloads overlap; decode/compile in order to avoid a mobile startup spike.
+    for (const entry of [entries[2], ...entries.filter(e => e.i !== 2)]) {
+      await load(entry);
+      if (disposed) throw new Error('LUMI home closed during preparation');
+      await renderer.compileAsync(entry.scene, camera);
+    }
+    await renderer.compileAsync(composite, quadCamera);
+    await renderer.compileAsync(glowScene, quadCamera);
+    resize(); draw(performance.now()); stop();
+    if (renderer.getContext().isContextLost()) throw new Error('LUMI home graphics context lost during preparation');
+  })();
+  return { select, ready, dispose, resume() { paused = false; elapsed = 0; last = 0; wake(); } };
 }
