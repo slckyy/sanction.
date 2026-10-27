@@ -228,8 +228,8 @@ html, body { overscroll-behavior: none; }
 .lumi-touch:focus-visible { outline: none; }
 
 /* The home page shares the existing type, safe areas and navigation footprint. */
-.panel-home { background: #fff; color: #000; color-scheme: light; }
-.panel-home .page-title h1 { color: #000; }
+.panel-home { background: #000; color: #fff; color-scheme: dark; }
+.panel-home .page-title h1 { color: #fff; }
 .panel-home .color-badge { color: #fff; }
 .home-content {
   position: absolute;
@@ -259,14 +259,14 @@ html, body { overscroll-behavior: none; }
   padding: 3px 0;
   border: 0;
   background: none;
-  color: #000;
+  color: #fff;
   transform: translate(-50%, -50%);
   transform-origin: center;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-.home-lumi-label:focus-visible { outline: 1px solid #000; outline-offset: 4px; border-radius: 16px; }
-.entry-bar { grid-template-columns: 1fr; background: #000; }
+.home-lumi-label:focus-visible { outline: 1px solid #fff; outline-offset: 4px; border-radius: 16px; }
+.entry-bar { grid-template-columns: 1fr; background: var(--entry-background, #86A5FF); }
 .entry-bar button { color: #fff; border-radius: 999px; }
 .entry-bar button:focus-visible { outline-color: #fff; }
 .home-selector-fallback { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 16px; }
