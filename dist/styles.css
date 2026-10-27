@@ -272,7 +272,7 @@ html, body { overscroll-behavior: none; }
 .entry-bar button { color: #fff; border-radius: 999px; }
 .entry-bar button:focus-visible { outline-color: #fff; }
 .startup-screen { opacity: 1; }
-.panel.is-page-outgoing { z-index: 3; isolation: isolate; will-change: opacity; }
+.panel.is-page-outgoing { z-index: 3; isolation: isolate; will-change: opacity; pointer-events: none; }
 .panel.is-page-incoming { z-index: 1; isolation: isolate; }
 .transition-navigation { z-index: 100; pointer-events: none; }
 .startup-progress { box-sizing: border-box; width: 148px; height: 5px; margin: 20px auto 0; border: 1px solid #fff; border-radius: 999px; overflow: hidden; }

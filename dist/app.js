@@ -211,8 +211,12 @@ async function navigate(id, resetHome = false) {
     if (resetHome) homeViewer?.select(2, true);
     showPage(id);
     outgoing.hidden = false;
+    outgoing.inert = true;
     // Visibility observers resize/wake the resident renderer before the reveal.
     await nextFrame(); await nextFrame(); await nextFrame();
+    // The fading page is visual only; scrolling and touch reach the ready page.
+    app.inert = false;
+    app.removeAttribute("aria-busy");
     await fade(outgoing, 1, 0);
     outgoing.hidden = true;
   } catch (error) {
@@ -220,6 +224,7 @@ async function navigate(id, resetHome = false) {
     if (activePage !== previous) showPage(previous);
   } finally {
     oldNavigation?.remove();
+    outgoing.inert = false;
     outgoing.classList.remove("is-page-outgoing");
     outgoing.style.removeProperty("opacity");
     incoming?.classList.remove("is-page-incoming");
