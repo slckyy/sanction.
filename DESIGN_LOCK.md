@@ -73,7 +73,6 @@ Compare every replicated page to the master at identical viewport and scroll pos
 | Page | Badge | Fill |
 | --- | --- | --- |
 | Call | ROSE | `#F28B96` |
-| Email | VIOLET | `#C394EE` |
 | Clients | BLUE | `#86A5FF` |
 | Events | JADE | `#78D9B5` |
 | Notes | GOLDEN | `#F3B363` |

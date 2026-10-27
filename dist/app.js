@@ -7,10 +7,6 @@ const pageContent = [
     description: "The space where all of your prospects are acquired by phone.",
     photo: "rose-photo.png", alt: "Rose LUMI in a rose-toned street-fashion editorial.",
     prefix: "", singular: "client", plural: "clients", suffix: " to call", list: "clients-to-call" },
-  { id: "email", title: "Email • Acquisition", color: "VIOLET", lumi: "EMAILER LUMI",
-    description: "The space where all of your prospects are acquired by email.",
-    photo: "violet-photo.png", alt: "Violet LUMI in a violet-toned street-fashion editorial.",
-    prefix: "", singular: "client", plural: "clients", suffix: " to email", list: "clients-to-email" },
   { id: "clients", title: "Clients • Management", color: "BLUE", lumi: "CLIENTELE LUMI",
     description: "The space where all of your confirmed prospects are managed.",
     prefix: " confirmed", singular: "client", plural: "clients", suffix: "", list: "confirmed-clients" },
@@ -114,7 +110,7 @@ function scheduleSceneBlur(state) {
 window.addEventListener("resize", () => {
   pageStates.filter(state => !state.panel.hidden).forEach(scheduleSceneBlur);
 });
-const managerNames = { call: "CALL", email: "EMAIL", clients: "CLIENT", events: "EVENT", notes: "NOTE" };
+const managerNames = { call: "CALL", clients: "CLIENT", events: "EVENT", notes: "NOTE" };
 function updateEntry() {
   const page = pageContent.find(item => item.id === activePage) || pageContent[selectedLumi];
   const badge = document.querySelector("#home-lumi-" + page.id + " .color-badge")
@@ -150,7 +146,6 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 // Prepare every page behind the startup screen before enabling navigation.
 const lumiAssets = [
   ["call", "./assets/rose-lumi-real.glb?v=rose-led-arm-3", "Rose LUMI holding a telephone"],
-  ["email", "./assets/violet-lumi-real.glb?v=violet-master-1", "Violet LUMI holding a black paper envelope"],
   ["clients", "./assets/blue-lumi-real.glb?v=blue-master-1", "Blue LUMI presenting a black plastic contact card"],
   ["events", "./assets/jade-lumi-real.glb?v=jade-master-1", "Jade LUMI presenting a hovering calendar with metal binding rings"],
   ["notes", "./assets/golden-lumi-real.glb?v=golden-master-1", "Golden LUMI writing in a black cardboard notebook with a stylus"]
@@ -320,8 +315,8 @@ async function startApp() {
     const fontsReady = track(document.fonts.ready);
     const modules = Promise.all([
       track(import("./lumi-assets.js?v=startup-1")),
-      track(import("./lumi-home.js?v=interactive-fades-1")),
-      track(import("./lumi-viewer.js?v=startup-1"))
+      track(import("./lumi-home.js?v=four-lumis-1")),
+      track(import("./lumi-viewer.js?v=four-lumis-1"))
     ]);
     const prepareModels = modules.then(async ([assetModule, homeModule, viewerModule]) => {
       assets = assetModule;

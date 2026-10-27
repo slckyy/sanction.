@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three-gltf.js?v=home-1';
 import { loadLumi } from './lumi-assets.js?v=startup-1';
 
-// Approved Rose master, shared with Violet. Only the posed outer assembly moves.
+// Approved Rose master, shared by the remaining LUMIs. Only the posed outer assembly moves.
 // The static-site dependency is locally bundled Three.js 0.186.1 + GLTFLoader (MIT).
 export async function mountLumi(panel, { asset, label }) {
   const hero = panel.querySelector('.editorial-hero');
@@ -290,22 +290,6 @@ export async function mountLumi(panel, { asset, label }) {
           scratch.addScaledVector(direction, .00055);
           const light = new THREE.PointLight(mesh.material.emissive.clone(), .000022, .023, 2);
           light.position.copy(scratch); assembly.add(light);
-        }
-      } else if (mesh.material.name === 'LUMI_ENVELOPE_LED_DIFFUSER') {
-        // Distribute the same accessory spill along the actual V-shaped light guide.
-        const position = mesh.geometry.attributes.position, normal = mesh.geometry.attributes.normal;
-        for (let step = 0; step < 5; step++) {
-          const x = box.min.x + (box.max.x - box.min.x) * (step + .5) / 5;
-          let best = Infinity, selected = 0;
-          for (let i = 0; i < position.count; i++) {
-            scratch.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld);
-            const distance = Math.abs(scratch.x - x) + Math.max(0, box.max.z - scratch.z) * .1;
-            if (distance < best) { best = distance; selected = i; }
-          }
-          scratch.fromBufferAttribute(position, selected).applyMatrix4(mesh.matrixWorld);
-          const direction = new THREE.Vector3().fromBufferAttribute(normal, selected).transformDirection(mesh.matrixWorld);
-          const light = new THREE.PointLight(mesh.material.emissive.clone(), .000005, .024, 2);
-          light.position.copy(scratch).addScaledVector(direction, .0008); assembly.add(light);
         }
       } else {
         pos.z = box.max.z + .0008;

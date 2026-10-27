@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three-gltf.js?v=home-1';
 import { loadLumi } from './lumi-assets.js?v=startup-1';
 
-// Five live GLBs, one WebGL context. Each whole character is composited with
+// Four live GLBs, one WebGL context. Each whole character is composited with
 // one opacity so ghosting never exposes its hidden interior construction.
 export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepared = () => {} } = {}) {
   const host = panel.querySelector('.home-selector');
@@ -9,7 +9,12 @@ export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepar
   const abort = new AbortController();
   const on = (target, type, fn, options = {}) => target.addEventListener(type, fn, { ...options, signal: abort.signal });
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
-  const badges = ['#F28B96', '#C394EE', '#86A5FF', '#78D9B5', '#F3B363'];
+  const appearances = {
+    call: { badge: '#F28B96', phase: 1.1, spin: .16, yaw: .35, rhythm: 0 },
+    clients: { badge: '#86A5FF', phase: 0, spin: .14, yaw: 0, rhythm: 2 },
+    events: { badge: '#78D9B5', phase: 4.2, spin: -.17, yaw: .28, rhythm: 3 },
+    notes: { badge: '#F3B363', phase: 5.5, spin: .21, yaw: -.32, rhythm: 4 }
+  };
   let selected = 0, position = 0, target = 0, pointer = null, wheelAt = 0;
   let backgroundPosition = NaN;
   function syncBackground() {
@@ -20,16 +25,17 @@ export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepar
   syncBackground();
   let frame = 0, last = 0, elapsed = 0, disposed = false, renderReady = false, width = 1, height = 1;
   const entries = items.map((item, i) => {
+    const appearance = appearances[item.id];
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'home-lumi-label edition-label';
     button.id = `home-lumi-${item.id}`; button.setAttribute('role', 'option');
     button.setAttribute('aria-label', `${item.color} ${item.lumi}, ${item.id.toUpperCase()}.`);
-    button.style.setProperty('--page-accent', badges[i]);
+    button.style.setProperty('--page-accent', appearance.badge);
     const badge = document.createElement('span'); badge.className = 'color-badge'; badge.textContent = item.color;
     const title = document.createElement('span'); title.textContent = item.lumi;
     button.append(badge, title); host.append(button);
     on(button, 'click', () => select(i));
-    return { item, button, i, weight: i === 0 ? 1 : 0, scene: null, lights: [], meshes: [] };
+    return { item, button, i, appearance, weight: i === 0 ? 1 : 0, scene: null, lights: [], meshes: [] };
   });
   function announce() {
     for (const e of entries) { e.button.setAttribute('aria-selected', String(e.i === selected)); e.button.tabIndex = e.i === selected ? 0 : -1; }
@@ -185,12 +191,12 @@ export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepar
       e.button.style.transform = `translate(-50%, -50%) scale(${labelScale})`; e.button.style.opacity = String(opacity);
       e.button.style.zIndex = String(e.i === selected ? 30 : 10 - Math.round(distance * 2));
       if (!e.scene) continue;
-      const phase = [1.1, 2.6, 0, 4.2, 5.5][e.i], moving = motion.matches ? 0 : 1;
-      e.placement.position.set(x, .008 + moving * .0016 * Math.sin(elapsed * (3.1 + e.i * .31) + phase), depth);
+      const { phase, spin, yaw, rhythm } = e.appearance, moving = motion.matches ? 0 : 1;
+      e.placement.position.set(x, .008 + moving * .0016 * Math.sin(elapsed * (3.1 + rhythm * .31) + phase), depth);
       e.placement.scale.setScalar(e.normalization * scale);
-      e.assembly.rotation.set(moving * .075 * Math.sin(elapsed * (.7 + e.i * .11) + phase),
-        moving * (elapsed * [.16, -.19, .14, -.17, .21][e.i] + [ .35, -.38, 0, .28, -.32 ][e.i]),
-        moving * .045 * Math.sin(elapsed * (.8 + e.i * .13) + phase));
+      e.assembly.rotation.set(moving * .075 * Math.sin(elapsed * (.7 + rhythm * .11) + phase),
+        moving * (elapsed * spin + yaw),
+        moving * .045 * Math.sin(elapsed * (.8 + rhythm * .13) + phase));
       const s = e.normalization * scale;
       e.key.position.copy(e.placement.position).add(scratch.set(-.018, -.22, .065).multiplyScalar(s)); e.key.target.position.copy(e.placement.position);
       e.key.intensity = 19 * e.weight; e.key.shadow.autoUpdate = e.weight > .01;
@@ -243,18 +249,17 @@ export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepar
     e.fill = new THREE.DirectionalLight(0xdedee8, 1); scene.add(e.fill);
     for (const mesh of e.meshes.filter(o => /LED_DIFFUSER/.test(o.material?.name))) {
       const box = new THREE.Box3().setFromObject(mesh), center = box.getCenter(new THREE.Vector3());
-      const eye = mesh.material.name === 'LUMI_EYE_LED_DIFFUSER', count = eye ? 8 : mesh.material.name === 'LUMI_ENVELOPE_LED_DIFFUSER' ? 5 : 1;
+      const eye = mesh.material.name === 'LUMI_EYE_LED_DIFFUSER', count = eye ? 8 : 1;
       const a = mesh.geometry.attributes.position, n = mesh.geometry.attributes.normal, indices = [...new Set(mesh.geometry.index.array)];
       for (let step = 0; step < count; step++) {
         const aim = center.clone(); aim.z = box.max.z;
         if (eye) { const angle = step * Math.PI / 4; aim.x += Math.cos(angle) * (box.max.x - box.min.x) * .47; aim.y += Math.sin(angle) * (box.max.y - box.min.y) * .47; }
-        else if (count > 1) aim.x = box.min.x + (box.max.x - box.min.x) * (step + .5) / count;
         let best = Infinity, chosen = 0;
         for (const i of indices) { scratch.fromBufferAttribute(a, i).applyMatrix4(mesh.matrixWorld); const dist = scratch.distanceToSquared(aim); if (dist < best) { best = dist; chosen = i; } }
         scratch.fromBufferAttribute(a, chosen).applyMatrix4(mesh.matrixWorld);
         const direction = new THREE.Vector3().fromBufferAttribute(n, chosen).transformDirection(mesh.matrixWorld);
         const light = new THREE.PointLight(mesh.material.emissive.clone(), 0, eye ? .023 : .024, 2);
-        light.userData.power = eye ? .000022 : count > 1 ? .000005 : .000025;
+        light.userData.power = eye ? .000022 : .000025;
         light.position.copy(scratch).addScaledVector(direction, eye ? .00055 : .0008); assembly.add(light); e.lights.push(light);
       }
     }
