@@ -150,6 +150,7 @@ const startupScreen = document.getElementById("startup-screen");
 const app = document.querySelector(".app");
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const progressBar = document.getElementById("startup-progress");
+const progressPercentage = document.getElementById("startup-percentage");
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
 const FADE_MS = 1500;
 const preparations = new Map();
@@ -269,6 +270,7 @@ async function startApp() {
     const advance = () => {
       const value = Math.round(++completed / total * 100);
       progressBar.setAttribute("aria-valuenow", String(value));
+      progressPercentage.textContent = `${value}%`;
       progressBar.setAttribute("aria-valuetext", `${completed} of ${total} preparation steps complete`);
       progressBar.firstElementChild.style.transform = `scaleX(${completed / total})`;
     };
@@ -320,7 +322,6 @@ async function startApp() {
     for (const dispose of disposeManagers) dispose?.();
     assets?.releaseLumiDownloads();
     startupScreen.setAttribute("aria-label", "SANCTION could not load. Retry available.");
-    startupScreen.querySelector(".startup-dots").hidden = true;
     startupScreen.querySelector(".startup-error").hidden = false;
     document.getElementById("startup-retry").focus();
   }

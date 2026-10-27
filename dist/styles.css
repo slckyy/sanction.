@@ -278,17 +278,11 @@ html, body { overscroll-behavior: none; }
 .startup-progress { box-sizing: border-box; width: 148px; height: 5px; margin: 20px auto 0; border: 1px solid #fff; border-radius: 999px; overflow: hidden; }
 .startup-progress > span { display: block; width: 100%; height: 100%; background: #fff; transform: scaleX(0); transform-origin: left; transition: transform 160ms linear; }
 .startup-title { font-family: inherit; position: relative; width: max-content; justify-self: center; }
-.startup-dots { position: absolute; top: 0; left: 100%; width: .9em; text-align: left; }
-.startup-dots[hidden] { display: none; }
-.startup-dots span:nth-child(2) { animation: startup-dot-two 1.2s step-end infinite; }
-.startup-dots span:nth-child(3) { animation: startup-dot-three 1.2s step-end infinite; }
-@keyframes startup-dot-two { 0% { opacity: 0; } 33.333%, 100% { opacity: 1; } }
-@keyframes startup-dot-three { 0% { opacity: 0; } 66.667%, 100% { opacity: 1; } }
+.startup-percentage { justify-content: center; margin: 8px 0 0; }
 .startup-error { max-width: 280px; margin: 24px auto 0; font-size: 14px; line-height: 1.5; }
 .startup-error button { padding: 12px 24px; border: 1px solid #fff; border-radius: 999px; background: #000; color: #fff; font: 600 12px/1 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; letter-spacing: -.15px; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .startup-progress > span { transition: none; }
-  .startup-dots span { animation: none !important; }
 }
 .home-selector-fallback { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 16px; }
 .home-selector-fallback .home-lumi-label { position: static; transform: none; }
