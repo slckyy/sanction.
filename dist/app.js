@@ -107,11 +107,11 @@ window.addEventListener("resize", () => {
 });
 const managerNames = { call: "CALL", email: "EMAIL", clients: "CLIENT", events: "EVENT", notes: "NOTE" };
 function updateEntry() {
-  const page = pageContent[selectedLumi];
+  const page = pageContent.find(item => item.id === activePage) || pageContent[selectedLumi];
   const badge = document.querySelector("#home-lumi-" + page.id + " .color-badge")
     || document.querySelector("#panel-" + page.id + " .color-badge");
-  enterButton.parentElement.style.setProperty("--entry-background", activePage === "home" ? getComputedStyle(badge).backgroundColor : "#000");
-  enterButton.textContent = activePage === "home" ? "OPEN " + managerNames[page.id] + " MANAGER." : "RETURN TO SANCTION";
+  enterButton.parentElement.style.setProperty("--entry-background", getComputedStyle(badge).backgroundColor);
+  enterButton.textContent = activePage === "home" ? "OPEN " + managerNames[page.id] + " MANAGER." : "RETURN TO SANCTION.";
   enterButton.setAttribute("aria-controls", "panel-" + (activePage === "home" ? page.id : "home"));
 }
 function showPage(id) {
