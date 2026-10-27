@@ -152,7 +152,7 @@ const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const curtain = document.getElementById("page-curtain");
 const progressBar = document.getElementById("startup-progress");
 const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-const FADE_MS = 2550;
+const FADE_MS = 1275;
 const preparations = new Map();
 const imageDecodes = new WeakMap();
 let navigating = false;
