@@ -378,7 +378,7 @@ async function startApp() {
     document.getElementById("startup-retry").focus();
   }
 }
-preloadPage("call", import("./clients.js?v=details-1").then(({ setupClientImport }) => setupClientImport({
+preloadPage("call", import("./clients.js?v=client-edit-1").then(({ setupClientImport }) => setupClientImport({
   app, importButton, startupScreen, fade, nextFrame,
   setActive: value => { clientImportActive = value; }
 })));

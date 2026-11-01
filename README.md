@@ -10,6 +10,8 @@ Event cards reuse the client card spacing, typography, corners, and action row w
 
 ## Shared client lists
 
+In the Clients list, Details includes a white `Edit` control at the top left. It makes the existing six fields editable in their original order, with black colon-ended labels. SAVE CHANGES validates and updates the same stored client, preserving its ID, list, and activation; the card and details refresh immediately. CANCEL or closing the editor discards unsaved changes. An empty Google page saves as null. Client and event Details labels all use black text and trailing colons.
+
 Call, Clients, and Lost render through the same card builder and CSS: the same typography, 16px corners, padding, 12px list gap, date/niche placement, and bottom action row. Their fills use Rose `#F28B96`, Blue `#86A5FF`, and Gray `#A5A9B2`. Active Clients use Jade `#78D9B5` for the name, Details, and Send text; the date and niche retain their original color.
 
 The transparent circular X at the top left of Home opens `Sanction • Lost Clients`, using the owner's unchanged `lost-clients-bg.png`. This page contains the shared list directly beneath the pinned title and a white return button.

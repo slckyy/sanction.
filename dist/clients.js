@@ -1,4 +1,6 @@
 const TEXT_FIELDS = ["business_name", "phone_number", "date_added", "business_info", "niche"];
+const DETAIL_FIELDS = [["business_name", "Business name"], ["phone_number", "Number"],
+  ["date_added", "Date added"], ["business_info", "Business info"], ["google_page", "Google page"], ["niche", "Niche"]];
 
 export function validateClient(value, index) {
   const fail = message => { throw new Error(`Client ${index + 1}: ${message}`); };
@@ -42,6 +44,31 @@ export function readClients(db) {
 // destructive database migration or a change to their original IDs/details.
 export function clientList(client) {
   return ["call", "clients", "lost"].includes(client.list) ? client.list : "call";
+}
+
+export function editClient(db, id, values) {
+  let fields;
+  try { fields = validateClient(values, 0); }
+  catch (error) { return Promise.reject(new Error(error.message.replace(/^Client 1: /, ""))); }
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction("clients", "readwrite");
+    const store = transaction.objectStore("clients");
+    let result, failure;
+    transaction.oncomplete = () => resolve(result);
+    transaction.onabort = () => reject(failure || transaction.error || new Error("Your changes could not be saved."));
+    transaction.onerror = () => {};
+    const request = store.get(id);
+    request.onsuccess = () => {
+      const current = request.result;
+      if (!current || clientList(current) !== "clients") {
+        failure = new Error("This client is no longer in Clients. Reopen SANCTION to refresh the list.");
+        transaction.abort();
+        return;
+      }
+      result = { ...current, ...fields };
+      store.put(result);
+    };
+  });
 }
 
 export function changeClient(db, id, action) {
@@ -142,8 +169,11 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
   const close = element("button", "client-dialog-close", "×");
   close.type = "button";
   close.setAttribute("aria-label", "Close client details");
+  const edit = element("button", "client-dialog-edit", "Edit");
+  edit.type = "button";
+  edit.hidden = true;
   const body = element("div", "client-dialog-body");
-  dialog.append(close, body);
+  dialog.append(edit, close, body);
   app.append(dialog);
   let changingClient = false;
   close.addEventListener("click", () => dialog.close());
@@ -155,6 +185,8 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
   });
 
   function prepareDialog(client, label) {
+    edit.hidden = true;
+    edit.onclick = null;
     body.replaceChildren();
     dialog.setAttribute("aria-label", label);
     dialog.style.setProperty("--page-accent", getComputedStyle(lists[clientList(client)].closest(".panel")).getPropertyValue("--page-accent"));
@@ -162,10 +194,13 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
 
   function showDetails(client) {
     prepareDialog(client, `Details for ${client.business_name}`);
+    if (clientList(client) === "clients") {
+      edit.hidden = false;
+      edit.onclick = () => showEdit(client);
+    }
     const details = element("dl", "client-details");
     body.append(details);
-    for (const [key, label] of [["business_name", "Business name"], ["phone_number", "Number"],
-      ["date_added", "Date added"], ["business_info", "Business info"], ["google_page", "Google page"], ["niche", "Niche"]]) {
+    for (const [key, label] of DETAIL_FIELDS) {
       const row = element("div", "client-detail-row");
       const value = element("dd", "", client[key] ?? "Not provided");
       if (key === "google_page" && client[key]) {
@@ -176,7 +211,67 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
       row.append(element("dt", "", `${label}:`), value);
       details.append(row);
     }
-    dialog.showModal();
+    if (!dialog.open) dialog.showModal();
+  }
+
+  function showEdit(client) {
+    prepareDialog(client, `Edit ${client.business_name}`);
+    const form = element("form", "client-edit-form");
+    const fields = element("div", "client-details");
+    const controls = new Map();
+    for (const [key, label] of DETAIL_FIELDS) {
+      const row = element("div", "client-detail-row event-field");
+      const caption = element("label", "client-edit-label", `${label}:`);
+      const control = element(key === "business_info" ? "textarea" : "input");
+      control.id = `edit-client-${key}`;
+      control.name = key;
+      caption.htmlFor = control.id;
+      if (key !== "business_info") control.type = key === "phone_number" ? "tel" : key === "google_page" ? "url" : "text";
+      control.value = client[key] ?? "";
+      control.required = key !== "google_page";
+      row.append(caption, control);
+      fields.append(row);
+      controls.set(key, control);
+    }
+    const options = element("div", "client-action-options");
+    const save = element("button", "client-action-button client-save-button", "SAVE CHANGES");
+    save.type = "submit";
+    const cancel = element("button", "client-action-button", "CANCEL");
+    cancel.type = "button";
+    cancel.addEventListener("click", () => { showDetails(client); edit.focus({ preventScroll: true }); });
+    options.append(save, cancel);
+    const error = element("p", "client-action-error");
+    error.setAttribute("role", "alert");
+    error.hidden = true;
+    form.append(fields, options, error);
+    body.append(form);
+    controls.get("business_name").focus({ preventScroll: true });
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (changingClient) return;
+      const values = Object.fromEntries([...controls].map(([key, control]) => [key, key === "google_page" ? control.value.trim() || null : control.value]));
+      changingClient = true;
+      close.disabled = true;
+      dialog.setAttribute("aria-busy", "true");
+      form.querySelectorAll("input, textarea, button").forEach(node => { node.disabled = true; });
+      error.hidden = true;
+      try {
+        const updated = await editClient(db, client.id, values);
+        const newCard = card(updated);
+        rendered.get(client.id).replaceWith(newCard);
+        rendered.set(client.id, newCard);
+        showDetails(updated);
+        edit.focus({ preventScroll: true });
+      } catch (failure) {
+        error.textContent = failure.name === "QuotaExceededError" ? "Your device storage is full. Changes were not saved." : failure.message;
+        error.hidden = false;
+      } finally {
+        changingClient = false;
+        close.disabled = false;
+        dialog.removeAttribute("aria-busy");
+        form.querySelectorAll("input, textarea, button").forEach(node => { node.disabled = false; });
+      }
+    });
   }
 
   function showActions(client) {

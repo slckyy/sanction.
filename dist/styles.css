@@ -325,6 +325,9 @@ html, body { overscroll-behavior: none; }
 .client-dialog { position: fixed; inset: 0; width: min(calc(100% - 32px), 398px); max-height: calc(var(--app-height) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 48px); margin: auto; padding: 44px 20px 20px; border: 0; border-radius: 20px; background: var(--page-accent); color: #fff; overflow-y: auto; }
 .client-dialog::backdrop { background: rgb(0 0 0 / 50%); backdrop-filter: blur(8px); }
 .client-dialog-close { position: absolute; top: 4px; right: 6px; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: #fff; font: 400 30px/1 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; cursor: pointer; }
+.client-dialog-edit { position: absolute; top: 4px; left: 20px; min-width: 44px; height: 40px; padding: 0; border: 0; background: none; color: #fff; font: 400 16px/1.2 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; text-align: left; cursor: pointer; }
+.client-dialog-edit[hidden] { display: none; }
+.client-dialog-edit:focus-visible { outline: 2px solid #fff; outline-offset: 2px; border-radius: 4px; }
 .client-details { margin: 0; }
 .client-detail-row + .client-detail-row { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgb(255 255 255 / 55%); }
 .client-details dt { color: #000; font-size: 12px; line-height: 1.4; }
@@ -359,6 +362,10 @@ html, body { overscroll-behavior: none; }
 .event-field input:focus-visible, .event-field textarea:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .event-field input[type="datetime-local"] { text-align: left; }
 .event-field input::-webkit-date-and-time-value { text-align: left; min-height: 1.4em; }
+.client-edit-form .client-edit-label { color: #000; font-size: 12px; line-height: 1.4; }
+.client-edit-form .client-action-options { margin-top: 20px; }
+.client-save-button { background: #fff; color: #000; }
+.client-save-button:focus-visible { outline-color: #000; }
 @media (max-height: 700px) {
   .home-content { top: calc(env(safe-area-inset-top, 0px) + 65px); grid-template-rows: minmax(140px, 1fr); }
 }
