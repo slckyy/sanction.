@@ -13,8 +13,8 @@
   <link rel="icon" type="image/png" sizes="1024x1024" href="./assets/sanction-icon-black.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./assets/sanction.png">
   <style>html,body{margin:0;background:#000}.startup-screen{position:fixed;inset:0;z-index:1000;display:grid;place-content:center;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;text-align:center}.startup-title{margin:0;font-size:clamp(32px,8vw,44px);font-weight:600;line-height:1;letter-spacing:-.15px}.startup-error[hidden]{display:none}</style>
-  <link rel="stylesheet" href="./styles.css?v=client-workflow-1">
-  <script src="./app.js?v=client-workflow-2" defer></script>
+  <link rel="stylesheet" href="./styles.css?v=scheduler-1">
+  <script src="./app.js?v=scheduler-1" defer></script>
 </head>
 <body>
   <div id="startup-screen" class="startup-screen" role="status" aria-label="SANCTION is loading">
@@ -81,8 +81,20 @@
         </div>
       </div>
     </section>
+    <section id="panel-past-events" class="panel panel-editorial panel-list-only" aria-label="Past Events" hidden>
+      <img class="background" src="./assets/events.png" alt="" draggable="false">
+      <div class="scene-soft" aria-hidden="true"><img class="background" src="./assets/events.png" alt="" draggable="false"></div>
+      <header class="page-title"><h1>Sanction • Past Events</h1></header>
+      <div class="page-scroll" tabindex="0" aria-label="Past events page">
+        <div class="editorial-content">
+          <section class="clients-section" aria-labelledby="past-events-heading">
+            <h2 id="past-events-heading" class="visually-hidden" aria-live="polite" aria-atomic="true"><span>Zero</span> past <span>events</span>:</h2>
+            <ul id="past-events" class="page-items" aria-label="Past events"></ul>
+          </section>
+        </div>
+      </div>
+    </section>
     <nav class="tab-bar entry-bar" aria-label="Workspace navigation">
-      <button id="import-clients" type="button" hidden>IMPORT CLIENTS</button>
       <button id="workspace-enter" aria-controls="panel-call">OPEN CALL MANAGER</button>
     </nav>
     <input id="client-file" type="file" accept=".json,application/json" hidden>

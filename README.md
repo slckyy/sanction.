@@ -1,6 +1,12 @@
 # sanction.
 
-Current checkpoint: shared client-list workflows — Lost Clients, transfers, activation, and copyable research prompt. See [DESIGN_LOCK.md](DESIGN_LOCK.md) for the underlying approved design.
+Current checkpoint: Scheduler events, Past Events, and the circular Call import control. See [DESIGN_LOCK.md](DESIGN_LOCK.md) for the underlying approved design.
+
+## Scheduler
+
+Events has a matching circular plus control at the top left and an arrow to Past Events at the top right. The plus opens a Jade popup with Event Name, Event Details, a local date/time picker, and a gray SCHEDULE EVENT button. Events persist in this browser/device in the separate `sanction-events` IndexedDB database. No reminders or notification permissions are included, as requested.
+
+Event cards reuse the client card spacing, typography, corners, and action row with Jade fill. They show a single-line name with ellipsis, the scheduled date with its ordinal suffix, Delete, and Details; there is no niche field or row. Details opens the shared Jade popup with the full name, exact notes, and scheduled date/time separated by horizontal rules. Upcoming Delete offers DELETE and DONE EARLY. Done Early moves the record to Past Events without losing its information. Events also move there at their scheduled instant, including when reopening after that time. Past Events uses the list-only layout and offers YES/NO before permanent deletion.
 
 ## Shared client lists
 
@@ -18,7 +24,7 @@ The matching circular copy control at the top left of Call copies the exact supp
 
 ## Edit 1 — client import
 
-The Call manager has an `IMPORT CLIENTS` button directly above `RETURN TO SANCTION`. The shared action buttons are 52 CSS pixels high with an 8-pixel stacked gap, regular-weight labels without periods, and white return buttons with black text. Import uses the reference's `#222222` fill.
+The Call manager has a transparent circular down-arrow import control at the top right, matching the copy control at the top left. It replaces the former footer IMPORT CLIENTS button while preserving the same file picker and import flow. Shared full-width action buttons are 52 CSS pixels high with an 8-pixel stacked gap, regular-weight labels without periods, and white return buttons with black text.
 
 Choose a JSON file containing an array of objects with `business_name`, `phone_number`, `date_added`, `business_info`, `google_page`, and `niche`. All fields are strings except `google_page`, which may be null. Dates are displayed exactly as supplied. The import preserves repeated records and has no hard-coded record-count limit. Invalid files and failed storage transactions do not partially add clients.
 

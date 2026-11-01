@@ -75,11 +75,20 @@ for (const page of pageContent) {
   homeBackgroundTrack.append(image);
 }
 const enterButton = document.getElementById("workspace-enter");
-const importButton = document.getElementById("import-clients");
+const importButton = document.createElement("button");
+importButton.id = "import-clients";
+importButton.type = "button";
+importButton.className = "circle-action circle-action-right";
+importButton.setAttribute("aria-label", "Import clients");
+importButton.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M5 17v4h14v-4"/></svg>';
+document.getElementById("panel-call").append(importButton);
 let clientImportActive = false;
 const DEFAULT_LUMI = 0;
 let selectedLumi = DEFAULT_LUMI, activePage = "home", homeViewer;
-const pageStates = [...pageContent, { id: "lost", list: "lost-clients", singular: "client", plural: "clients" }].map(page => {
+const pageStates = [...pageContent,
+  { id: "lost", list: "lost-clients", singular: "client", plural: "clients" },
+  { id: "past-events", list: "past-events", singular: "event", plural: "events" }
+].map(page => {
   const panel = document.getElementById("panel-" + page.id);
   const scroll = panel.querySelector(".page-scroll");
   const list = document.getElementById(page.list);
@@ -119,8 +128,6 @@ function updateEntry() {
     || document.querySelector("#panel-" + page.id + " .color-badge");
   enterButton.parentElement.style.setProperty("--entry-background", activePage === "home" ? getComputedStyle(badge).backgroundColor : "#fff");
   enterButton.parentElement.classList.toggle("is-manager", activePage !== "home");
-  importButton.hidden = activePage !== "call";
-  app.classList.toggle("has-import-action", activePage === "call");
   enterButton.textContent = activePage === "home" ? "OPEN " + managerNames[page.id] + " MANAGER" : "RETURN TO SANCTION";
   enterButton.setAttribute("aria-controls", "panel-" + (activePage === "home" ? page.id : "home"));
 }
@@ -142,7 +149,7 @@ function openHome() {
 enterButton.addEventListener("click", () => navigate(activePage === "home" ? pageContent[selectedLumi].id : "home"));
 document.getElementById("open-lost-clients").addEventListener("click", () => navigate("lost"));
 function restoreHome() {
-  if (app.dataset.startupReady !== "true" || navigating || clientImportActive) return;
+  if (app.dataset.startupReady !== "true" || navigating || clientImportActive || app.querySelector("dialog[open]")) return;
   selectedLumi = DEFAULT_LUMI;
   if (activePage === "home") { homeViewer?.select(DEFAULT_LUMI, true); updateEntry(); }
   else navigate("home", true);
@@ -376,4 +383,5 @@ preloadPage("call", import("./clients.js?v=client-workflow-2").then(({ setupClie
   setActive: value => { clientImportActive = value; }
 })));
 preloadPage("call", import("./copy-prompt.js?v=client-workflow-1").then(({ setupCopyPrompt }) => setupCopyPrompt()));
+preloadPage("events", import("./events.js?v=scheduler-1").then(({ setupEvents }) => setupEvents({ app, navigate })));
 startApp();

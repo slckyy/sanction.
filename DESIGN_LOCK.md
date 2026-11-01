@@ -1,5 +1,9 @@
 # Locked page design — 2026-10-23
 
+## Authorized Scheduler — 2026-11-01
+
+Scheduler adds a top-left glass plus circle, a Jade event form/details popup, and a top-right arrow to the list-only Past Events page using the existing Jade background. Event cards share client spacing and typography, omit the niche entirely, truncate long names with ellipsis, and show the scheduled ordinal date. Details contains the full event name, exact details, and local date/time. Upcoming Delete offers DELETE/DONE EARLY; past Delete offers YES/NO. Passed or completed-early events belong in Past Events. The owner explicitly removed the reminder requirement. Call import moves from the footer to a matching top-right down-arrow circle; its existing import behavior remains intact.
+
 ## Authorized shared-list workflow
 
 The owner requested one exact card format and spacing across Call, Clients, and Lost. Share the card renderer and styles; only the page accent, active text state, and specified action labels vary. Retain Blue `#86A5FF` and Jade `#78D9B5`; Gray `#A5A9B2` accompanies the unchanged supplied `lost-clients-bg.png`. Lost has the same pinned title treatment, then the list directly below it, without a character or editorial photo. Add the transparent circular X on Home and matching copy icon on Call. Two-button action popups retain 52px action height and 8px spacing. These requested changes supersede the former absence of transfer, activation, and deletion controls.

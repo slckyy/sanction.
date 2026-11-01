@@ -48,6 +48,7 @@ html, body { overscroll-behavior: none; }
 #panel-call { --page-accent: var(--lumi-rose); }
 #panel-clients { --page-accent: var(--lumi-blue); }
 #panel-events { --page-accent: var(--lumi-jade); }
+#panel-past-events { --page-accent: var(--lumi-jade); }
 #panel-notes { --page-accent: var(--lumi-golden); }
 #panel-lost { --page-accent: var(--lumi-gray); }
 .scene-soft {
@@ -282,10 +283,8 @@ html, body { overscroll-behavior: none; }
 .entry-bar button[hidden] { display: none; }
 .entry-bar button + button::before { display: none; }
 .entry-bar.is-manager button { color: #000; }
-.entry-bar #import-clients { background: #222; color: #fff; }
 .entry-bar button:disabled { opacity: .55; cursor: wait; }
 .entry-bar.is-manager #workspace-enter:focus-visible { outline-color: #000; }
-.has-import-action #panel-call .editorial-content { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 176px); }
 .entry-bar button:focus-visible { outline-color: #fff; }
 .startup-screen { opacity: 1; }
 .panel.is-page-outgoing { z-index: 3; isolation: isolate; will-change: opacity; pointer-events: none; }
@@ -332,10 +331,11 @@ html, body { overscroll-behavior: none; }
 .client-details dd { margin: 4px 0 0; font-size: 16px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
 .client-details a { color: #fff; text-underline-offset: 3px; }
 .import-message { position: absolute; z-index: 2; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 76px); margin: 0; padding: 12px 16px; border-radius: 16px; background: #222; color: #fff; font-size: 13px; line-height: 1.4; }
-.has-import-action .import-message { bottom: calc(env(safe-area-inset-bottom, 0px) + 136px); }
 .import-message[hidden] { display: none; }
 .circle-action { position: absolute; z-index: 2; top: calc(env(safe-area-inset-top, 0px) + 13px); left: max(16px, env(safe-area-inset-left, 0px)); display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid rgb(255 255 255 / 30%); border-radius: 50%; background: rgb(255 255 255 / 10%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 15%), 0 2px 8px rgb(0 0 0 / 8%); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: #fff; cursor: pointer; touch-action: manipulation; }
 .circle-action svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.circle-action-right { left: auto; right: max(16px, env(safe-area-inset-right, 0px)); }
+.circle-action:disabled { opacity: .55; cursor: wait; }
 .circle-action:focus-visible, .client-action-button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 .circle-action:active { background: rgb(255 255 255 / 22%); }
 .panel-list-only .editorial-content { padding-top: calc(env(safe-area-inset-top, 0px) + 90px); }
@@ -347,6 +347,16 @@ html, body { overscroll-behavior: none; }
 .client-action-button:disabled { opacity: .55; cursor: wait; }
 .client-action-error { margin: 12px 0 0; font-size: 14px; line-height: 1.4; }
 .client-action-error[hidden] { display: none; }
+.event-card { grid-template-areas: "name name" "date date" "send details"; }
+.event-name { display: block; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.event-form { display: grid; gap: 16px; }
+.event-field { display: grid; gap: 8px; }
+.event-field label { color: #fff; font-size: 16px; line-height: 1.4; }
+.event-field input, .event-field textarea { appearance: none; display: block; box-sizing: border-box; width: 100%; min-width: 0; min-height: 48px; padding: 12px; border: 1px solid transparent; border-radius: 12px; background: #222; color: #fff; color-scheme: dark; font: 400 16px/1.4 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; }
+.event-field textarea { min-height: 120px; resize: vertical; }
+.event-field input:focus-visible, .event-field textarea:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.event-field input[type="datetime-local"] { text-align: left; }
+.event-field input::-webkit-date-and-time-value { text-align: left; min-height: 1.4em; }
 @media (max-height: 700px) {
   .home-content { top: calc(env(safe-area-inset-top, 0px) + 65px); grid-template-rows: minmax(140px, 1fr); }
 }
