@@ -1,6 +1,20 @@
 # sanction.
 
-Current checkpoint: Edit 1 — JSON client import, persistent Call-list cards and details, and shared button styling (2026-10-31). See [DESIGN_LOCK.md](DESIGN_LOCK.md) for the underlying approved design.
+Current checkpoint: shared client-list workflows — Lost Clients, transfers, activation, and copyable research prompt. See [DESIGN_LOCK.md](DESIGN_LOCK.md) for the underlying approved design.
+
+## Shared client lists
+
+Call, Clients, and Lost render through the same card builder and CSS: the same typography, 16px corners, padding, 12px list gap, date/niche placement, and bottom action row. Their fills use Rose `#F28B96`, Blue `#86A5FF`, and Gray `#A5A9B2`. Active Clients use Jade `#78D9B5` for the name, Details, and Send text; the date and niche retain their original color.
+
+The transparent circular X at the top left of Home opens `Sanction • Lost Clients`, using the owner's unchanged `lost-clients-bg.png`. This page contains the shared list directly beneath the pinned title and a white return button.
+
+- Call's `Send to →`: `SEND TO LOST` or `SEND TO CLIENTS`.
+- Clients' `Send to →`: `SEND TO LOST` or `ACTIVATE CLIENT`.
+- Lost's `Delete`: `DELETE CLIENT` or `SEND TO CALL LIST`.
+
+All actions use the same accent-colored popup with two 52px buttons and an 8px gap. Moves and activation update the existing IndexedDB record atomically; deletion permanently removes that record. Original fields and IDs survive transfers. Old imports with no list metadata remain in Call. Sending an active client to Lost resets activation, and restoring sends it to Call. Counts update when cards move.
+
+The matching circular copy control at the top left of Call copies the exact supplied research prompt, including its final edit note, with the START/END delimiters excluded. `dist/research-prompt.js` stores the full text; it is preloaded so clipboard access starts immediately from the tap gesture.
 
 ## Edit 1 — client import
 
@@ -10,7 +24,7 @@ Choose a JSON file containing an array of objects with `business_name`, `phone_n
 
 Imported prospects appear in the Call manager under its live word-based count. Cards use its Rose accent; business names are telephone links. Details opens a matching dialog with all six fields, a clickable Google URL when supplied, and a close button. Import reuses the startup screen and fade, with progress driven by file reading, validation/card preparation, IndexedDB writes, and list rendering. It returns to the originating page without resetting its scroll position.
 
-Client records persist in IndexedDB in the current browser/device for this site origin. They are not uploaded to GitHub or synchronized across devices. No deletion or duplicate-filtering controls are included. The supplied real-client sample is not committed to the public repository.
+Client records persist in IndexedDB in the current browser/device for this site origin. They are not uploaded to GitHub or synchronized across devices. Deletion is available through the Lost list; imports do not filter duplicates. The supplied real-client sample is not committed to the public repository.
 
 GitHub Pages serves the root redirect into `dist/`. Publish each edit checkpoint to `main` and verify the corresponding Pages deployment; a local edit or commit alone is not a published checkpoint.
 

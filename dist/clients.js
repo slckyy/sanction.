@@ -38,6 +38,40 @@ export function readClients(db) {
   });
 }
 
+// Existing imports have no list field. They remain Call prospects without a
+// destructive database migration or a change to their original IDs/details.
+export function clientList(client) {
+  return ["call", "clients", "lost"].includes(client.list) ? client.list : "call";
+}
+
+export function changeClient(db, id, action) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction("clients", "readwrite");
+    const store = transaction.objectStore("clients");
+    let result, failure;
+    transaction.oncomplete = () => resolve(result);
+    transaction.onabort = () => reject(failure || transaction.error || new Error("The client could not be updated."));
+    transaction.onerror = () => {};
+    const request = store.get(id);
+    request.onsuccess = () => {
+      try {
+        const client = request.result;
+        if (!client) throw new Error("This client is no longer available. Reopen SANCTION to refresh the list.");
+        const list = clientList(client);
+        const allowed = { call: ["lost", "clients"], clients: ["lost", "activate"], lost: ["delete", "call"] };
+        if (!allowed[list].includes(action)) throw new Error("This client has already changed lists. Reopen SANCTION to refresh it.");
+        if (action === "delete") {
+          store.delete(id);
+          result = null;
+        } else {
+          result = { ...client, list: action === "activate" ? "clients" : action, active: action === "activate" };
+          store.put(result);
+        }
+      } catch (error) { failure = error; transaction.abort(); }
+    };
+  });
+}
+
 // One transaction makes an import all-or-nothing, including quota failures.
 // Auto-generated keys deliberately allow repeated clients, as requested.
 export function saveClients(db, clients, onProgress = () => {}) {
@@ -45,7 +79,8 @@ export function saveClients(db, clients, onProgress = () => {}) {
     const transaction = db.transaction("clients", "readwrite");
     const store = transaction.objectStore("clients");
     let saved = 0;
-    transaction.oncomplete = resolve;
+    const savedClients = [];
+    transaction.oncomplete = () => resolve(savedClients);
     transaction.onabort = () => reject(transaction.error || new Error("The import could not be saved."));
     transaction.onerror = () => {}; // The abort handler reports the transaction outcome.
     function queueBatch() {
@@ -53,6 +88,7 @@ export function saveClients(db, clients, onProgress = () => {}) {
       for (let i = saved; i < end; i++) {
         const request = store.add(clients[i]);
         request.onsuccess = () => {
+          savedClients[i] = { ...clients[i], id: request.result };
           saved++;
           if (saved === end) {
             onProgress(saved / clients.length);
@@ -84,7 +120,12 @@ function element(tag, className, text) {
 }
 
 export async function setupClientImport({ app, importButton, startupScreen, fade, nextFrame, setActive }) {
-  const list = document.getElementById("clients-to-call");
+  const lists = {
+    call: document.getElementById("clients-to-call"),
+    clients: document.getElementById("confirmed-clients"),
+    lost: document.getElementById("lost-clients")
+  };
+  const rendered = new Map();
   const input = document.getElementById("client-file");
   const message = document.getElementById("import-message");
   const loader = startupScreen.cloneNode(true);
@@ -100,19 +141,28 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
   const close = element("button", "client-dialog-close", "×");
   close.type = "button";
   close.setAttribute("aria-label", "Close client details");
-  const details = element("dl", "client-details");
-  dialog.append(close, details);
+  const body = element("div", "client-dialog-body");
+  dialog.append(close, body);
   app.append(dialog);
+  let changingClient = false;
   close.addEventListener("click", () => dialog.close());
+  dialog.addEventListener("cancel", event => { if (changingClient) event.preventDefault(); });
   dialog.addEventListener("click", event => {
-    if (event.target !== dialog) return;
+    if (event.target !== dialog || changingClient) return;
     const rect = dialog.getBoundingClientRect();
     if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
   });
 
+  function prepareDialog(client, label) {
+    body.replaceChildren();
+    dialog.setAttribute("aria-label", label);
+    dialog.style.setProperty("--page-accent", getComputedStyle(lists[clientList(client)].closest(".panel")).getPropertyValue("--page-accent"));
+  }
+
   function showDetails(client) {
-    details.replaceChildren();
-    dialog.style.setProperty("--page-accent", getComputedStyle(list.closest(".panel")).getPropertyValue("--page-accent"));
+    prepareDialog(client, `Details for ${client.business_name}`);
+    const details = element("dl", "client-details");
+    body.append(details);
     for (const [key, label] of [["business_name", "Business name"], ["phone_number", "Number"],
       ["date_added", "Date added"], ["business_info", "Business info"], ["google_page", "Google page"], ["niche", "Niche"]]) {
       const row = element("div", "client-detail-row");
@@ -128,8 +178,63 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
     dialog.showModal();
   }
 
+  function showActions(client) {
+    prepareDialog(client, `Actions for ${client.business_name}`);
+    const options = element("div", "client-action-options");
+    const error = element("p", "client-action-error");
+    error.setAttribute("role", "alert");
+    error.hidden = true;
+    const source = clientList(client);
+    const actions = source === "lost"
+      ? [["delete", "DELETE CLIENT"], ["call", "SEND TO CALL LIST"]]
+      : [["lost", "SEND TO LOST"], source === "clients" ? ["activate", "ACTIVATE CLIENT"] : ["clients", "SEND TO CLIENTS"]];
+    for (const [action, label] of actions) {
+      const button = element("button", "client-action-button", label);
+      button.type = "button";
+      button.addEventListener("click", async () => {
+        if (changingClient) return;
+        changingClient = true;
+        options.querySelectorAll("button").forEach(node => { node.disabled = true; });
+        close.disabled = true;
+        dialog.setAttribute("aria-busy", "true");
+        error.hidden = true;
+        try {
+          const updated = await changeClient(db, client.id, action);
+          const oldCard = rendered.get(client.id);
+          if (updated) {
+            const newCard = card(updated);
+            if (clientList(updated) === source) oldCard.replaceWith(newCard);
+            else { oldCard.remove(); lists[clientList(updated)].append(newCard); }
+            rendered.set(client.id, newCard);
+          } else {
+            oldCard.remove();
+            rendered.delete(client.id);
+          }
+          dialog.close();
+          const focusTarget = source === "clients" && action === "activate"
+            ? rendered.get(client.id).querySelector(".client-send-button")
+            : lists[source].querySelector(".client-send-button") || lists[source].closest(".page-scroll");
+          focusTarget.focus({ preventScroll: true });
+        } catch (failure) {
+          error.textContent = failure.message || "Couldn’t update this client. Please try again.";
+          error.hidden = false;
+        } finally {
+          changingClient = false;
+          close.disabled = false;
+          dialog.removeAttribute("aria-busy");
+          options.querySelectorAll("button").forEach(node => { node.disabled = false; });
+        }
+      });
+      options.append(button);
+    }
+    body.append(options, error);
+    dialog.showModal();
+  }
+
   function card(client) {
     const item = element("li", "client-card");
+    item.dataset.clientId = client.id;
+    item.classList.toggle("is-active", clientList(client) === "clients" && client.active === true);
     const name = element("a", "client-name", client.business_name);
     name.href = "tel:" + client.phone_number.replace(/[\s().-]/g, "");
     const date = element("p", "client-date", client.date_added);
@@ -138,8 +243,22 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
     button.type = "button";
     button.setAttribute("aria-label", `Details for ${client.business_name}`);
     button.addEventListener("click", () => showDetails(client));
-    item.append(name, date, niche, button);
+    const send = element("button", "client-send-button", clientList(client) === "lost" ? "Delete" : "Send to →");
+    send.type = "button";
+    send.setAttribute("aria-label", `${clientList(client) === "lost" ? "Delete or restore" : "Send"} ${client.business_name}`);
+    send.addEventListener("click", () => showActions(client));
+    item.append(name, date, niche, send, button);
     return item;
+  }
+
+  function appendClients(clients) {
+    const fragments = Object.fromEntries(Object.keys(lists).map(list => [list, document.createDocumentFragment()]));
+    for (const client of clients) {
+      const item = card(client);
+      rendered.set(client.id, item);
+      fragments[clientList(client)].append(item);
+    }
+    for (const [list, fragment] of Object.entries(fragments)) lists[list].append(fragment);
   }
 
   function notify(text, failed = false) {
@@ -160,7 +279,7 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
     db = await openClientDatabase();
     const stored = await readClients(db);
     for (let i = 0; i < stored.length; i += 100) {
-      list.append(...stored.slice(i, i + 100).map(card));
+      appendClients(stored.slice(i, i + 100));
       await nextFrame();
     }
   } catch {
@@ -196,20 +315,22 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
       catch { throw new Error("This file isn’t valid JSON. Choose a JSON array of clients."); }
       if (!Array.isArray(parsed)) throw new Error("The JSON must contain an array of clients, like your sample file.");
       const clients = [];
-      const cards = document.createDocumentFragment();
       for (let i = 0; i < parsed.length; i++) {
         const client = validateClient(parsed[i], i);
         clients.push(client);
-        cards.append(card(client));
         if ((i + 1) % 100 === 0 || i === parsed.length - 1) {
           updateProgress(.2 + (i + 1) / parsed.length * .3, "Preparing clients");
           await nextFrame();
         }
       }
       updateProgress(.5, "Saving clients");
-      await saveClients(db, clients, value => updateProgress(.5 + value * .45, "Saving clients"));
+      const savedClients = await saveClients(db, clients, value => updateProgress(.5 + value * .4, "Saving clients"));
       committed = true;
-      list.append(cards);
+      for (let i = 0; i < savedClients.length; i += 100) {
+        appendClients(savedClients.slice(i, i + 100));
+        updateProgress(.9 + Math.min(i + 100, savedClients.length) / savedClients.length * .1, "Displaying clients");
+        await nextFrame();
+      }
       await nextFrame(); await nextFrame();
       updateProgress(1, "Clients saved");
       notify(`${clients.length} ${clients.length === 1 ? "client" : "clients"} imported to Call`);

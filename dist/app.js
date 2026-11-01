@@ -79,7 +79,7 @@ const importButton = document.getElementById("import-clients");
 let clientImportActive = false;
 const DEFAULT_LUMI = 0;
 let selectedLumi = DEFAULT_LUMI, activePage = "home", homeViewer;
-const pageStates = pageContent.map(page => {
+const pageStates = [...pageContent, { id: "lost", list: "lost-clients", singular: "client", plural: "clients" }].map(page => {
   const panel = document.getElementById("panel-" + page.id);
   const scroll = panel.querySelector(".page-scroll");
   const list = document.getElementById(page.list);
@@ -99,7 +99,7 @@ const pageStates = pageContent.map(page => {
 });
 
 function updateSceneBlur(state) {
-  const distance = state.panel.querySelector(".editorial-hero").offsetHeight;
+  const distance = state.panel.querySelector(".editorial-hero")?.offsetHeight || 90;
   if (distance) {
     const start = distance - Math.max(0, state.scroll.scrollTop) - 180;
     state.panel.style.setProperty("--blur-start", start + "px");
@@ -140,6 +140,7 @@ function openHome() {
   showPage("home");
 }
 enterButton.addEventListener("click", () => navigate(activePage === "home" ? pageContent[selectedLumi].id : "home"));
+document.getElementById("open-lost-clients").addEventListener("click", () => navigate("lost"));
 function restoreHome() {
   if (app.dataset.startupReady !== "true" || navigating || clientImportActive) return;
   selectedLumi = DEFAULT_LUMI;
@@ -370,8 +371,9 @@ async function startApp() {
     document.getElementById("startup-retry").focus();
   }
 }
-preloadPage("call", import("./clients.js?v=edit-1").then(({ setupClientImport }) => setupClientImport({
+preloadPage("call", import("./clients.js?v=client-workflow-1").then(({ setupClientImport }) => setupClientImport({
   app, importButton, startupScreen, fade, nextFrame,
   setActive: value => { clientImportActive = value; }
 })));
+preloadPage("call", import("./copy-prompt.js?v=client-workflow-1").then(({ setupCopyPrompt }) => setupCopyPrompt()));
 startApp();

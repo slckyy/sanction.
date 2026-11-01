@@ -1,5 +1,9 @@
 # Locked page design — 2026-10-23
 
+## Authorized shared-list workflow
+
+The owner requested one exact card format and spacing across Call, Clients, and Lost. Share the card renderer and styles; only the page accent, active text state, and specified action labels vary. Retain Blue `#86A5FF` and Jade `#78D9B5`; Gray `#A5A9B2` accompanies the unchanged supplied `lost-clients-bg.png`. Lost has the same pinned title treatment, then the list directly below it, without a character or editorial photo. Add the transparent circular X on Home and matching copy icon on Call. Two-button action popups retain 52px action height and 8px spacing. These requested changes supersede the former absence of transfer, activation, and deletion controls.
+
 ## Authorized Edit 1 — 2026-10-31
 
 The owner requested JSON client import, reference-based client cards and details, and shared button changes. These additions supersede the older empty-list and button styling descriptions only: 52px action height, 8px stacked gap, regular weight, no periods, white return action with black text, and `#222222` import action. The Call manager contains import; imported prospects populate the Rose Call list. Cards and their details dialog use the list page's existing accent. Preserve the approved LUMIs, photos, backgrounds, typography outside the new client UI, and navigation/fade behavior.

@@ -1,5 +1,10 @@
 :root {
   --app-height: 100vh;
+  --lumi-rose: #F28B96;
+  --lumi-blue: #86A5FF;
+  --lumi-jade: #78D9B5;
+  --lumi-golden: #F3B363;
+  --lumi-gray: #A5A9B2;
   color-scheme: dark;
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   background: #000;
@@ -40,10 +45,11 @@ html, body { overscroll-behavior: none; }
   color: #fff;
   color-scheme: light;
 }
-#panel-call { --page-accent: #F28B96; }
-#panel-clients { --page-accent: #86A5FF; }
-#panel-events { --page-accent: #78D9B5; }
-#panel-notes { --page-accent: #F3B363; }
+#panel-call { --page-accent: var(--lumi-rose); }
+#panel-clients { --page-accent: var(--lumi-blue); }
+#panel-events { --page-accent: var(--lumi-jade); }
+#panel-notes { --page-accent: var(--lumi-golden); }
+#panel-lost { --page-accent: var(--lumi-gray); }
 .scene-soft {
   position: absolute;
   inset: 0;
@@ -298,21 +304,25 @@ html, body { overscroll-behavior: none; }
 .home-selector-fallback .home-lumi-label { position: static; transform: none; }
 .page-items:not(:empty) { display: grid; gap: 12px; margin-top: 20px; }
 .client-card {
+  --client-text: #fff;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-areas: "name niche" "date niche" ". details";
+  grid-template-areas: "name niche" "date niche" "send details";
   column-gap: 12px;
   padding: 16px 14px 8px;
   border-radius: 16px;
   background: var(--page-accent);
   color: #fff;
 }
-.client-name { grid-area: name; font-size: 18px; line-height: 1.2; letter-spacing: -.45px; color: #fff; text-decoration: none; overflow-wrap: anywhere; }
+.client-card.is-active { --client-text: var(--lumi-jade); }
+.client-name { grid-area: name; font-size: 18px; line-height: 1.2; letter-spacing: -.45px; color: var(--client-text); text-decoration: none; overflow-wrap: anywhere; }
 .client-date, .client-niche { margin: 5px 0 0; font-size: 14px; line-height: 1.3; letter-spacing: -.2px; color: #222; }
 .client-date { grid-area: date; }
 .client-niche { grid-area: niche; align-self: center; max-width: 110px; text-align: right; overflow-wrap: anywhere; }
-.client-details-button { grid-area: details; justify-self: end; min-height: 44px; padding: 6px 0 0 12px; border: 0; background: none; color: #fff; font: 400 16px/1.2 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; cursor: pointer; }
-.client-name:focus-visible, .client-details-button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 4px; }
+.client-details-button, .client-send-button { min-height: 44px; padding: 6px 0 0; border: 0; background: none; color: var(--client-text); font: 400 16px/1.2 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; cursor: pointer; touch-action: manipulation; }
+.client-details-button { grid-area: details; justify-self: end; padding-left: 12px; }
+.client-send-button { grid-area: send; justify-self: start; text-align: left; }
+.client-name:focus-visible, .client-details-button:focus-visible, .client-send-button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; border-radius: 4px; }
 .client-dialog { position: fixed; inset: 0; width: min(calc(100% - 32px), 398px); max-height: calc(var(--app-height) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 48px); margin: auto; padding: 44px 20px 20px; border: 0; border-radius: 20px; background: var(--page-accent); color: #fff; overflow-y: auto; }
 .client-dialog::backdrop { background: rgb(0 0 0 / 50%); backdrop-filter: blur(8px); }
 .client-dialog-close { position: absolute; top: 4px; right: 6px; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: #fff; font: 400 30px/1 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; cursor: pointer; }
@@ -321,8 +331,22 @@ html, body { overscroll-behavior: none; }
 .client-details dt { font-size: 12px; line-height: 1.4; }
 .client-details dd { margin: 4px 0 0; font-size: 16px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
 .client-details a { color: #fff; text-underline-offset: 3px; }
-.import-message { position: absolute; z-index: 2; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 136px); margin: 0; padding: 12px 16px; border-radius: 16px; background: #222; color: #fff; font-size: 13px; line-height: 1.4; }
+.import-message { position: absolute; z-index: 2; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 76px); margin: 0; padding: 12px 16px; border-radius: 16px; background: #222; color: #fff; font-size: 13px; line-height: 1.4; }
+.has-import-action .import-message { bottom: calc(env(safe-area-inset-bottom, 0px) + 136px); }
 .import-message[hidden] { display: none; }
+.circle-action { position: absolute; z-index: 2; top: calc(env(safe-area-inset-top, 0px) + 13px); left: max(16px, env(safe-area-inset-left, 0px)); display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 1px solid rgb(255 255 255 / 30%); border-radius: 50%; background: rgb(255 255 255 / 10%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 15%), 0 2px 8px rgb(0 0 0 / 8%); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: #fff; cursor: pointer; touch-action: manipulation; }
+.circle-action svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.circle-action:focus-visible, .client-action-button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.circle-action:active { background: rgb(255 255 255 / 22%); }
+.panel-list-only .editorial-content { padding-top: calc(env(safe-area-inset-top, 0px) + 90px); }
+.panel-list-only .clients-section, .panel-list-only .page-items { margin-top: 0; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.client-action-options { display: grid; gap: 8px; }
+.client-action-button { width: 100%; min-height: 52px; padding: 12px 16px; border: 0; border-radius: 999px; background: #222; color: #fff; font: 400 12px/1.2 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; letter-spacing: -.15px; cursor: pointer; touch-action: manipulation; }
+.client-action-button + .client-action-button { background: #fff; color: #000; }
+.client-action-button:disabled { opacity: .55; cursor: wait; }
+.client-action-error { margin: 12px 0 0; font-size: 14px; line-height: 1.4; }
+.client-action-error[hidden] { display: none; }
 @media (max-height: 700px) {
   .home-content { top: calc(env(safe-area-inset-top, 0px) + 65px); grid-template-rows: minmax(140px, 1fr); }
 }

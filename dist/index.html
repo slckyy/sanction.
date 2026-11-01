@@ -13,8 +13,8 @@
   <link rel="icon" type="image/png" sizes="1024x1024" href="./assets/sanction-icon-black.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./assets/sanction.png">
   <style>html,body{margin:0;background:#000}.startup-screen{position:fixed;inset:0;z-index:1000;display:grid;place-content:center;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif;text-align:center}.startup-title{margin:0;font-size:clamp(32px,8vw,44px);font-weight:600;line-height:1;letter-spacing:-.15px}.startup-error[hidden]{display:none}</style>
-  <link rel="stylesheet" href="./styles.css?v=edit-1-call-import">
-  <script src="./app.js?v=edit-1-call-import" defer></script>
+  <link rel="stylesheet" href="./styles.css?v=client-workflow-1">
+  <script src="./app.js?v=client-workflow-1" defer></script>
 </head>
 <body>
   <div id="startup-screen" class="startup-screen" role="status" aria-label="SANCTION is loading">
@@ -30,6 +30,9 @@
     <section id="panel-home" class="panel panel-home" aria-labelledby="home-heading">
       <div class="home-backgrounds" aria-hidden="true"><div class="home-background-track"></div></div>
       <header class="page-title"><h1 id="home-heading">Sanction • Everything</h1></header>
+      <button id="open-lost-clients" class="circle-action" type="button" aria-label="Open lost clients" aria-controls="panel-lost">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>
+      </button>
       <div class="home-content">
         <div class="home-selector" role="listbox" aria-label="Choose your LUMI" aria-orientation="horizontal"></div>
       </div>
@@ -64,6 +67,19 @@
     </section>
     <section id="panel-notes" class="panel" aria-label="Notes" hidden>
       <img class="background" src="./assets/notes.png" alt="" draggable="false">
+    </section>
+    <section id="panel-lost" class="panel panel-editorial panel-list-only" aria-label="Lost Clients" hidden>
+      <img class="background" src="./assets/lost-clients-bg.png" alt="" draggable="false">
+      <div class="scene-soft" aria-hidden="true"><img class="background" src="./assets/lost-clients-bg.png" alt="" draggable="false"></div>
+      <header class="page-title"><h1>Sanction • Lost Clients</h1></header>
+      <div class="page-scroll" tabindex="0" aria-label="Lost clients page">
+        <div class="editorial-content">
+          <section class="clients-section" aria-labelledby="lost-heading">
+            <h2 id="lost-heading" class="visually-hidden" aria-live="polite" aria-atomic="true"><span>Zero</span> lost <span>clients</span>:</h2>
+            <ul id="lost-clients" class="page-items" aria-label="Lost clients"></ul>
+          </section>
+        </div>
+      </div>
     </section>
     <nav class="tab-bar entry-bar" aria-label="Workspace navigation">
       <button id="import-clients" type="button" hidden>IMPORT CLIENTS</button>
