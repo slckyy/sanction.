@@ -119,8 +119,8 @@ function updateEntry() {
     || document.querySelector("#panel-" + page.id + " .color-badge");
   enterButton.parentElement.style.setProperty("--entry-background", activePage === "home" ? getComputedStyle(badge).backgroundColor : "#fff");
   enterButton.parentElement.classList.toggle("is-manager", activePage !== "home");
-  importButton.hidden = activePage !== "clients";
-  app.classList.toggle("has-import-action", activePage === "clients");
+  importButton.hidden = activePage !== "call";
+  app.classList.toggle("has-import-action", activePage === "call");
   enterButton.textContent = activePage === "home" ? "OPEN " + managerNames[page.id] + " MANAGER" : "RETURN TO SANCTION";
   enterButton.setAttribute("aria-controls", "panel-" + (activePage === "home" ? page.id : "home"));
 }

@@ -4,7 +4,7 @@ Current checkpoint: Edit 1 — JSON client import, persistent Call-list cards an
 
 ## Edit 1 — client import
 
-The Clients manager has an `IMPORT CLIENTS` button directly above `RETURN TO SANCTION`. The shared action buttons are 52 CSS pixels high with an 8-pixel stacked gap, regular-weight labels without periods, and white return buttons with black text. Import uses the reference's `#222222` fill.
+The Call manager has an `IMPORT CLIENTS` button directly above `RETURN TO SANCTION`. The shared action buttons are 52 CSS pixels high with an 8-pixel stacked gap, regular-weight labels without periods, and white return buttons with black text. Import uses the reference's `#222222` fill.
 
 Choose a JSON file containing an array of objects with `business_name`, `phone_number`, `date_added`, `business_info`, `google_page`, and `niche`. All fields are strings except `google_page`, which may be null. Dates are displayed exactly as supplied. The import preserves repeated records and has no hard-coded record-count limit. Invalid files and failed storage transactions do not partially add clients.
 

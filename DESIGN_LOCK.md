@@ -2,7 +2,7 @@
 
 ## Authorized Edit 1 — 2026-10-31
 
-The owner requested JSON client import, reference-based client cards and details, and shared button changes. These additions supersede the older empty-list and button styling descriptions only: 52px action height, 8px stacked gap, regular weight, no periods, white return action with black text, and `#222222` import action. The Clients manager contains import; imported prospects populate the Rose Call list. Cards and their details dialog use the list page's existing accent. Preserve the approved LUMIs, photos, backgrounds, typography outside the new client UI, and navigation/fade behavior.
+The owner requested JSON client import, reference-based client cards and details, and shared button changes. These additions supersede the older empty-list and button styling descriptions only: 52px action height, 8px stacked gap, regular weight, no periods, white return action with black text, and `#222222` import action. The Call manager contains import; imported prospects populate the Rose Call list. Cards and their details dialog use the list page's existing accent. Preserve the approved LUMIs, photos, backgrounds, typography outside the new client UI, and navigation/fade behavior.
 
 The owner approved the completed CALL page on 2026-10-24 as the master for the remaining LUMI pages. This approval includes its character presentation, materials, lighting, interaction, and scrolling. The earlier Clients layout lock below remains the shared layout foundation.
 
