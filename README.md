@@ -37,7 +37,7 @@ The updated visual lock uses black/gray text with page-matched badge fills: Rose
 
 The app always starts on `clients.` and returns there when reopened from the background or restored from browser history. The blue background is preloaded for the initial view.
 
-The app icon uses the owner's original artwork composited over solid black at 1024 × 1024, saved as opaque RGB PNG at `dist/assets/sanction-icon-black.png`. Both HTML entry points and the web app manifest reference this versioned asset. The original transparent source is preserved.
+Both HTML entry points use the owner's supplied 180 × 180 `sanction.png`, copied unchanged to `dist/assets/sanction.png`, as the Apple touch icon. The browser favicon and web app manifest retain the 1024 × 1024 `dist/assets/sanction-icon-black.png` asset.
 
 ## Checkpoint convention
 
