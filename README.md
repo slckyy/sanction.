@@ -4,7 +4,7 @@ Current checkpoint: Scheduler events, Past Events, and the circular Call import 
 
 ## Scheduler
 
-Events has a matching circular plus control at the top left and an arrow to Past Events at the top right. The plus opens a Jade popup with Event Name, Event Details, a local date/time picker, and a gray SCHEDULE EVENT button. Events persist in this browser/device in the separate `sanction-events` IndexedDB database. No reminders or notification permissions are included, as requested.
+Events has a matching circular plus control at the top left and an arrow to Past Events at the top right. The plus opens a Jade popup with Event Name, Event Details, a local date/time picker, and a white SCHEDULE EVENT button with black text. Events persist in this browser/device in the separate `sanction-events` IndexedDB database. No reminders or notification permissions are included, as requested.
 
 Event cards reuse the client card spacing, typography, corners, and action row with Jade fill. They show a single-line name with ellipsis, the scheduled date with its ordinal suffix, Delete, and Details; there is no niche field or row. Details opens the shared Jade popup with the full name, exact notes, and scheduled date/time separated by horizontal rules. Upcoming Delete offers DELETE and DONE EARLY. Done Early moves the record to Past Events without losing its information. Events also move there at their scheduled instant, including when reopening after that time. Past Events uses the list-only layout and offers YES/NO before permanent deletion.
 
