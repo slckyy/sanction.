@@ -29,7 +29,7 @@ export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepar
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'home-lumi-label edition-label';
     button.id = `home-lumi-${item.id}`; button.setAttribute('role', 'option');
-    button.setAttribute('aria-label', `${item.color} ${item.lumi}, ${item.id.toUpperCase()}.`);
+    button.setAttribute('aria-label', `${item.color} ${item.lumi}, ${item.id.toUpperCase()}`);
     button.style.setProperty('--page-accent', appearance.badge);
     const badge = document.createElement('span'); badge.className = 'color-badge'; badge.textContent = item.color;
     const title = document.createElement('span'); title.textContent = item.lumi;

@@ -1,6 +1,18 @@
 # sanction.
 
-Current checkpoint: owner-approved Clients page design locked on 2026-10-23. See [DESIGN_LOCK.md](DESIGN_LOCK.md) before any page replication or visual edit.
+Current checkpoint: Edit 1 — JSON client import, persistent Call-list cards and details, and shared button styling (2026-10-31). See [DESIGN_LOCK.md](DESIGN_LOCK.md) for the underlying approved design.
+
+## Edit 1 — client import
+
+The Clients manager has an `IMPORT CLIENTS` button directly above `RETURN TO SANCTION`. The shared action buttons are 52 CSS pixels high with an 8-pixel stacked gap, regular-weight labels without periods, and white return buttons with black text. Import uses the reference's `#222222` fill.
+
+Choose a JSON file containing an array of objects with `business_name`, `phone_number`, `date_added`, `business_info`, `google_page`, and `niche`. All fields are strings except `google_page`, which may be null. Dates are displayed exactly as supplied. The import preserves repeated records and has no hard-coded record-count limit. Invalid files and failed storage transactions do not partially add clients.
+
+Imported prospects appear in the Call manager under its live word-based count. Cards use its Rose accent; business names are telephone links. Details opens a matching dialog with all six fields, a clickable Google URL when supplied, and a close button. Import reuses the startup screen and fade, with progress driven by file reading, validation/card preparation, IndexedDB writes, and list rendering. It returns to the originating page without resetting its scroll position.
+
+Client records persist in IndexedDB in the current browser/device for this site origin. They are not uploaded to GitHub or synchronized across devices. No deletion or duplicate-filtering controls are included. The supplied real-client sample is not committed to the public repository.
+
+GitHub Pages serves the root redirect into `dist/`. Publish each edit checkpoint to `main` and verify the corresponding Pages deployment; a local edit or commit alone is not a published checkpoint.
 
 The exact supplied 1290 × 2796 PNG backgrounds fill the viewport. The solid black pill tab bar overlays them without consuming layout space. Desktop landscape displays a centered portrait canvas with black sidebars.
 
@@ -17,7 +29,7 @@ For the iPhone full-screen presentation, open in Safari and add to the Home Scre
 
 The root, body, and app use `100lvh` (with `100vh` fallback) in standalone/fullscreen display modes. This avoids the shortened `100dvh` reported by some iOS Home Screen apps. Browser tabs retain dynamic viewport sizing. Safe-area spacing applies to the floating navigation, not the background.
 
-The clients page follows the supplied video and still references: centered `Clients • Management`, a deliberately empty hero, the `BLUE` badge beside `CLIENTELE LUMI`, the exact description `The space where all of your confirmed prospects are managed.`, a rounded portrait photo, and a left-aligned `Zero confirmed clients:` heading above an empty list. Call, Events, and Notes now clone this exact Clients markup with owner-supplied text and editorial photos. Their pre-existing tab backgrounds are preserved. All pages share typography, spacing, badge styling, photo geometry, blur behavior, and navigation. Each page has its own empty list and word-based count; no data entry forms or persistence have been added.
+The clients page follows the supplied video and still references: centered `Clients • Management`, a deliberately empty hero, the `BLUE` badge beside `CLIENTELE LUMI`, the exact description `The space where all of your confirmed prospects are managed.`, a rounded portrait photo, and a left-aligned `Zero confirmed clients:` heading above an empty list. Call, Events, and Notes now clone this exact Clients markup with owner-supplied text and editorial photos. Their pre-existing tab backgrounds are preserved. All pages share typography, spacing, badge styling, photo geometry, blur behavior, and navigation. Each page has its own list and word-based count; Edit 1 adds JSON import and persistent client storage as described above.
 
 The regular-weight header stays at its original safe-area position while the content scrolls beneath it; the header has no background, border, or blur strip. The hero occupies 60% of the viewport (559px on the 932px-tall target iPhone), with 16px content margins. The photo frame follows the reference's 655:1111 ratio and 24px corner radius. The original repository `client-photo.png` is copied byte-for-byte into `dist/assets/`; CSS crops its center to the frame without stretching the source image. No object, placeholder, spin controls, or object animation is present in the reserved hero space.
 

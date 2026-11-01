@@ -75,6 +75,8 @@ for (const page of pageContent) {
   homeBackgroundTrack.append(image);
 }
 const enterButton = document.getElementById("workspace-enter");
+const importButton = document.getElementById("import-clients");
+let clientImportActive = false;
 const DEFAULT_LUMI = 0;
 let selectedLumi = DEFAULT_LUMI, activePage = "home", homeViewer;
 const pageStates = pageContent.map(page => {
@@ -115,12 +117,16 @@ function updateEntry() {
   const page = pageContent.find(item => item.id === activePage) || pageContent[selectedLumi];
   const badge = document.querySelector("#home-lumi-" + page.id + " .color-badge")
     || document.querySelector("#panel-" + page.id + " .color-badge");
-  enterButton.parentElement.style.setProperty("--entry-background", getComputedStyle(badge).backgroundColor);
-  enterButton.textContent = activePage === "home" ? "OPEN " + managerNames[page.id] + " MANAGER." : "RETURN TO SANCTION.";
+  enterButton.parentElement.style.setProperty("--entry-background", activePage === "home" ? getComputedStyle(badge).backgroundColor : "#fff");
+  enterButton.parentElement.classList.toggle("is-manager", activePage !== "home");
+  importButton.hidden = activePage !== "clients";
+  app.classList.toggle("has-import-action", activePage === "clients");
+  enterButton.textContent = activePage === "home" ? "OPEN " + managerNames[page.id] + " MANAGER" : "RETURN TO SANCTION";
   enterButton.setAttribute("aria-controls", "panel-" + (activePage === "home" ? page.id : "home"));
 }
 function showPage(id) {
   activePage = id;
+  if (!importButton.disabled) document.getElementById("import-message").hidden = true;
   homePanel.hidden = id !== "home";
   for (const state of pageStates) {
     state.panel.hidden = state.panel.id !== "panel-" + id;
@@ -135,7 +141,7 @@ function openHome() {
 }
 enterButton.addEventListener("click", () => navigate(activePage === "home" ? pageContent[selectedLumi].id : "home"));
 function restoreHome() {
-  if (app.dataset.startupReady !== "true" || navigating) return;
+  if (app.dataset.startupReady !== "true" || navigating || clientImportActive) return;
   selectedLumi = DEFAULT_LUMI;
   if (activePage === "home") { homeViewer?.select(DEFAULT_LUMI, true); updateEntry(); }
   else navigate("home", true);
@@ -194,7 +200,7 @@ async function fade(element, from, to, duration = FADE_MS, onAnimation = () => {
   animation.cancel();
 }
 async function navigate(id, resetHome = false) {
-  if (app.dataset.startupReady !== "true") return;
+  if (app.dataset.startupReady !== "true" || clientImportActive) return;
   const request = ++navigationRequest;
   if (id === activePage) return;
   let generation;
@@ -315,7 +321,7 @@ async function startApp() {
     const fontsReady = track(document.fonts.ready);
     const modules = Promise.all([
       track(import("./lumi-assets.js?v=startup-1")),
-      track(import("./lumi-home.js?v=four-lumis-1")),
+      track(import("./lumi-home.js?v=edit-1")),
       track(import("./lumi-viewer.js?v=four-lumis-1"))
     ]);
     const prepareModels = modules.then(async ([assetModule, homeModule, viewerModule]) => {
@@ -364,4 +370,8 @@ async function startApp() {
     document.getElementById("startup-retry").focus();
   }
 }
+preloadPage("call", import("./clients.js?v=edit-1").then(({ setupClientImport }) => setupClientImport({
+  app, importButton, startupScreen, fade, nextFrame,
+  setActive: value => { clientImportActive = value; }
+})));
 startApp();
