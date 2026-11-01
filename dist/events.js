@@ -200,7 +200,7 @@ export async function setupEvents({ app, navigate }) {
     const time = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(event.scheduledAt);
     for (const [label, text] of [["Event Name", event.name], ["Event Details", event.details], ["Event Date", `${formatEventDate(event.scheduledAt)} • ${time}`]]) {
       const row = element("div", "client-detail-row");
-      row.append(element("dt", "", label), element("dd", "", text));
+      row.append(element("dt", "", `${label}:`), element("dd", "", text));
       details.append(row);
     }
     body.append(details);

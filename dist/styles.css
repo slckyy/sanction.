@@ -327,7 +327,7 @@ html, body { overscroll-behavior: none; }
 .client-dialog-close { position: absolute; top: 4px; right: 6px; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: #fff; font: 400 30px/1 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; cursor: pointer; }
 .client-details { margin: 0; }
 .client-detail-row + .client-detail-row { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgb(255 255 255 / 55%); }
-.client-details dt { font-size: 12px; line-height: 1.4; }
+.client-details dt { color: #000; font-size: 12px; line-height: 1.4; }
 .client-details dd { margin: 4px 0 0; font-size: 16px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
 .client-details a { color: #fff; text-underline-offset: 3px; }
 .import-message { position: absolute; z-index: 2; left: 16px; right: 16px; bottom: calc(env(safe-area-inset-bottom, 0px) + 76px); margin: 0; padding: 12px 16px; border-radius: 16px; background: #222; color: #fff; font-size: 13px; line-height: 1.4; }

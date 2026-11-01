@@ -378,10 +378,10 @@ async function startApp() {
     document.getElementById("startup-retry").focus();
   }
 }
-preloadPage("call", import("./clients.js?v=client-workflow-2").then(({ setupClientImport }) => setupClientImport({
+preloadPage("call", import("./clients.js?v=details-1").then(({ setupClientImport }) => setupClientImport({
   app, importButton, startupScreen, fade, nextFrame,
   setActive: value => { clientImportActive = value; }
 })));
 preloadPage("call", import("./copy-prompt.js?v=client-workflow-1").then(({ setupCopyPrompt }) => setupCopyPrompt()));
-preloadPage("events", import("./events.js?v=scheduler-3").then(({ setupEvents }) => setupEvents({ app, navigate })));
+preloadPage("events", import("./events.js?v=details-1").then(({ setupEvents }) => setupEvents({ app, navigate })));
 startApp();

@@ -173,7 +173,7 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
         link.href = client[key]; link.target = "_blank"; link.rel = "noopener noreferrer";
         value.replaceChildren(link);
       }
-      row.append(element("dt", "", label), value);
+      row.append(element("dt", "", `${label}:`), value);
       details.append(row);
     }
     dialog.showModal();
