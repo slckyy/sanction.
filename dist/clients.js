@@ -58,13 +58,14 @@ export function changeClient(db, id, action) {
         const client = request.result;
         if (!client) throw new Error("This client is no longer available. Reopen SANCTION to refresh the list.");
         const list = clientList(client);
-        const allowed = { call: ["lost", "clients"], clients: ["lost", "activate"], lost: ["delete", "call"] };
+        const allowed = { call: ["lost", "clients"], clients: ["lost", "activate", "deactivate"], lost: ["delete", "call"] };
         if (!allowed[list].includes(action)) throw new Error("This client has already changed lists. Reopen SANCTION to refresh it.");
         if (action === "delete") {
           store.delete(id);
           result = null;
         } else {
-          result = { ...client, list: action === "activate" ? "clients" : action, active: action === "activate" };
+          const changesActivation = action === "activate" || action === "deactivate";
+          result = { ...client, list: changesActivation ? "clients" : action, active: action === "activate" };
           store.put(result);
         }
       } catch (error) { failure = error; transaction.abort(); }
@@ -185,9 +186,10 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
     error.setAttribute("role", "alert");
     error.hidden = true;
     const source = clientList(client);
+    const activationAction = client.active === true ? ["deactivate", "DEACTIVATE"] : ["activate", "ACTIVATE CLIENT"];
     const actions = source === "lost"
       ? [["delete", "DELETE CLIENT"], ["call", "SEND TO CALL LIST"]]
-      : [["lost", "SEND TO LOST"], source === "clients" ? ["activate", "ACTIVATE CLIENT"] : ["clients", "SEND TO CLIENTS"]];
+      : [["lost", "SEND TO LOST"], source === "clients" ? activationAction : ["clients", "SEND TO CLIENTS"]];
     for (const [action, label] of actions) {
       const button = element("button", "client-action-button", label);
       button.type = "button";
@@ -211,7 +213,7 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
             rendered.delete(client.id);
           }
           dialog.close();
-          const focusTarget = source === "clients" && action === "activate"
+          const focusTarget = source === "clients" && (action === "activate" || action === "deactivate")
             ? rendered.get(client.id).querySelector(".client-send-button")
             : lists[source].querySelector(".client-send-button") || lists[source].closest(".page-scroll");
           focusTarget.focus({ preventScroll: true });

@@ -9,7 +9,7 @@ Call, Clients, and Lost render through the same card builder and CSS: the same t
 The transparent circular X at the top left of Home opens `Sanction • Lost Clients`, using the owner's unchanged `lost-clients-bg.png`. This page contains the shared list directly beneath the pinned title and a white return button.
 
 - Call's `Send to →`: `SEND TO LOST` or `SEND TO CLIENTS`.
-- Clients' `Send to →`: `SEND TO LOST` or `ACTIVATE CLIENT`.
+- Clients' `Send to →`: `SEND TO LOST` or `ACTIVATE CLIENT`. Active clients show `DEACTIVATE` instead; deactivation restores white text and the activation option. This can be toggled repeatedly and persists after reopening.
 - Lost's `Delete`: `DELETE CLIENT` or `SEND TO CALL LIST`.
 
 All actions use the same accent-colored popup with two 52px buttons and an 8px gap. Moves and activation update the existing IndexedDB record atomically; deletion permanently removes that record. Original fields and IDs survive transfers. Old imports with no list metadata remain in Call. Sending an active client to Lost resets activation, and restoring sends it to Call. Counts update when cards move.
