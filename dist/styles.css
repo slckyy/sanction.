@@ -280,13 +280,13 @@ html, body { overscroll-behavior: none; }
 }
 .home-lumi-label:focus-visible { outline: 1px solid #fff; outline-offset: 4px; border-radius: 16px; }
 .entry-bar { grid-template-columns: 1fr; gap: 8px; padding: 0; border-radius: 0; background: transparent; }
-.entry-bar button { height: 52px; color: #fff; border-radius: 999px; background: var(--entry-background, #86A5FF); }
+.entry-bar button { height: 52px; color: #000; border-radius: 999px; background: #fff; }
 .entry-bar button[hidden] { display: none; }
 .entry-bar button + button::before { display: none; }
 .entry-bar.is-manager button { color: #000; }
 .entry-bar button:disabled { opacity: .55; cursor: wait; }
 .entry-bar.is-manager #workspace-enter:focus-visible { outline-color: #000; }
-.entry-bar button:focus-visible { outline-color: #fff; }
+.entry-bar button:focus-visible { outline-color: #000; }
 .startup-screen { opacity: 1; }
 .panel.is-page-outgoing { z-index: 3; isolation: isolate; will-change: opacity; pointer-events: none; }
 .panel.is-page-incoming { z-index: 1; isolation: isolate; }
