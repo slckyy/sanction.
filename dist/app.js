@@ -1,4 +1,5 @@
 "use strict";
+const motion = window.SanctionMotion;
 
 // Clone the approved Clients markup; only supplied page content and the
 // pre-existing background asset vary. All pages use the same stylesheet.
@@ -94,8 +95,8 @@ const pageStates = [...pageContent,
   const state = { panel, scroll, frame: 0 };
   function updateCount() {
     const total = [...list.children].filter(child => child.tagName === "LI").length;
-    count.textContent = countInWords(total);
-    noun.textContent = total === 1 ? page.singular : page.plural;
+    motion.text(count, countInWords(total));
+    motion.text(noun, total === 1 ? page.singular : page.plural);
   }
   new MutationObserver(updateCount).observe(list, { childList: true });
   updateCount();
@@ -121,12 +122,14 @@ const managerNames = { call: "CALL", clients: "CLIENT", events: "EVENT" };
 function updateEntry() {
   const page = pageContent.find(item => item.id === activePage) || pageContent[selectedLumi];
   enterButton.parentElement.classList.toggle("is-manager", activePage !== "home");
-  enterButton.textContent = activePage === "home" ? "OPEN " + managerNames[page.id] + " MANAGER" : "RETURN TO SANCTION";
+  let label = enterButton.querySelector('.entry-label');
+  if (!label) { label = document.createElement('span'); label.className = 'entry-label'; enterButton.replaceChildren(label); }
+  motion.text(label, activePage === "home" ? "OPEN " + managerNames[page.id] + " MANAGER" : "RETURN TO SANCTION");
   enterButton.setAttribute("aria-controls", "panel-" + (activePage === "home" ? page.id : "home"));
 }
 function showPage(id) {
   activePage = id;
-  if (!importButton.disabled) document.getElementById("import-message").hidden = true;
+  if (!importButton.disabled) motion.hideMessage(document.getElementById("import-message"));
   homePanel.hidden = id !== "home";
   for (const state of pageStates) {
     state.panel.hidden = state.panel.id !== "panel-" + id;
@@ -161,8 +164,7 @@ const app = document.querySelector(".app");
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const progressBar = document.getElementById("startup-progress");
 const progressPercentage = document.getElementById("startup-percentage");
-const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
-const FADE_MS = 1500;
+const FADE_MS = 360;
 const preparations = new Map();
 const imageDecodes = new WeakMap();
 let navigating = false;
@@ -191,8 +193,8 @@ async function preparePage(id) {
 }
 async function fade(element, from, to, duration = FADE_MS, onAnimation = () => {}) {
   const animation = element.animate([{ opacity: from }, { opacity: to }], {
-    duration: reducedMotion.matches ? 120 : duration,
-    easing: "cubic-bezier(.22, 1, .36, 1)", fill: "forwards"
+    duration: motion.duration(duration),
+    easing: motion.ease, fill: "forwards"
   });
   onAnimation(animation);
   await animation.finished;
@@ -370,10 +372,10 @@ async function startApp() {
     document.getElementById("startup-retry").focus();
   }
 }
-preloadPage("call", import("./clients.js?v=shared-glass-1").then(({ setupClientImport }) => setupClientImport({
+preloadPage("call", import("./clients.js?v=unified-motion-1").then(({ setupClientImport }) => setupClientImport({
   app, importButton, startupScreen, fade, nextFrame,
   setActive: value => { clientImportActive = value; }
 })));
-preloadPage("call", import("./copy-prompt.js?v=client-workflow-1").then(({ setupCopyPrompt }) => setupCopyPrompt()));
-preloadPage("events", import("./events.js?v=action-headings-1").then(({ setupEvents }) => setupEvents({ app, navigate })));
+preloadPage("call", import("./copy-prompt.js?v=unified-motion-1").then(({ setupCopyPrompt }) => setupCopyPrompt()));
+preloadPage("events", import("./events.js?v=unified-motion-1").then(({ setupEvents }) => setupEvents({ app, navigate })));
 startApp();

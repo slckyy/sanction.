@@ -116,15 +116,17 @@ export async function setupEvents({ app, navigate }) {
   dialog.append(close, body);
   app.append(dialog);
   let db, storageFailure, busy = false, timer, bucketSignature = "";
-  close.addEventListener("click", () => dialog.close());
-  dialog.addEventListener("cancel", event => { if (busy) event.preventDefault(); });
+  const motion = window.SanctionMotion;
+  const modal = motion.dialog(dialog, body, () => busy);
+  close.addEventListener("click", () => modal.close());
   dialog.addEventListener("click", event => {
     if (event.target !== dialog || busy) return;
     const rect = dialog.getBoundingClientRect();
-    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
+    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) modal.close();
   });
 
   function prepareDialog(label) {
+    modal.prepare();
     body.replaceChildren();
     dialog.setAttribute("aria-label", label);
   }
@@ -182,15 +184,15 @@ export async function setupEvents({ app, navigate }) {
         setBusy(true);
         const saved = await saveEvent(db, data);
         records.set(saved.id, saved);
+        await modal.close(true);
         render();
-        dialog.close();
         add.focus({ preventScroll: true });
       } catch (failure) {
         error.textContent = failure.name === "QuotaExceededError" ? "Your device storage is full. The event was not saved." : failure.message;
         error.hidden = false;
       } finally { setBusy(false); }
     });
-    dialog.showModal();
+    modal.open();
   }
   add.addEventListener("click", showForm);
 
@@ -204,7 +206,7 @@ export async function setupEvents({ app, navigate }) {
       details.append(row);
     }
     body.append(details);
-    dialog.showModal();
+    modal.open();
   }
 
   function showActions(event) {
@@ -218,15 +220,15 @@ export async function setupEvents({ app, navigate }) {
       button.type = "button";
       button.addEventListener("click", async () => {
         if (busy) return;
-        if (action === "cancel") { dialog.close(); return; }
+        if (action === "cancel") { modal.close(); return; }
         setBusy(true);
         error.hidden = true;
         try {
           const updated = await changeEvent(db, event.id, action);
           if (updated) records.set(updated.id, updated);
           else records.delete(event.id);
+          await modal.close(true);
           render();
-          dialog.close();
           (lists[source].querySelector(".client-send-button") || lists[source].closest(".page-scroll")).focus({ preventScroll: true });
         } catch (failure) {
           error.textContent = failure.message;
@@ -236,7 +238,7 @@ export async function setupEvents({ app, navigate }) {
       options.append(button);
     }
     body.append(element("h2", "client-action-heading", "DELETE?"), options, error);
-    dialog.showModal();
+    modal.open();
   }
 
   function card(event) {
@@ -269,10 +271,13 @@ export async function setupEvents({ app, navigate }) {
   function render() {
     const now = Date.now();
     const events = [...records.values()];
-    lists.upcoming.replaceChildren(...events.filter(event => !isPastEvent(event, now)).sort((a, b) => a.scheduledAt - b.scheduledAt || a.id - b.id).map(card));
-    lists.past.replaceChildren(...events.filter(event => isPastEvent(event, now)).sort((a, b) => (b.completedAt ?? b.scheduledAt) - (a.completedAt ?? a.scheduledAt) || b.id - a.id).map(card));
+    const animation = motion.updateLists(Object.values(lists), () => {
+      lists.upcoming.replaceChildren(...events.filter(event => !isPastEvent(event, now)).sort((a, b) => a.scheduledAt - b.scheduledAt || a.id - b.id).map(card));
+      lists.past.replaceChildren(...events.filter(event => isPastEvent(event, now)).sort((a, b) => (b.completedAt ?? b.scheduledAt) - (a.completedAt ?? a.scheduledAt) || b.id - a.id).map(card));
+    });
     bucketSignature = signature(now);
     setBoundaryTimer(now);
+    return animation;
   }
   function refreshTime() {
     const now = Date.now();

@@ -1,5 +1,9 @@
 # Locked page design — 2026-10-23
 
+## Authorized shared motion pass — 2026-11-01
+
+The owner authorized a complete motion consistency pass and publication after review. Page and loader fades now use 360ms; modal entrance/content changes use 240–280ms, exit 180ms, presses 140ms, and list repositioning 320ms, all with the same restrained ease-out family. Preserve direct LUMI dragging and existing artwork. Animate modal/backdrop entry and exit, Details/Edit changes, record movement/removal, activation colors, count/navigation labels, and feedback. Native dialog focus trapping and busy guards remain intact; long dialog content scrolls beneath stationary close/edit controls. Reduced motion removes spatial effects and limits fades to 80ms. Existing approved colors, card geometry, button sizes, gaps, typography, and artwork remain unchanged.
+
 ## Authorized shared glass and three-LUMI Home — 2026-11-01
 
 All current list cards and Details, Edit, transfer, delete, and scheduling popups use the approved translucent glass surface: Rose for Call, Blue for Clients, Jade for Events/Past Events, and neutral untinted glass for Lost Clients. Retain the existing button fills, label colors, card spacing, and aligned action-popup title/X row. The owner requested complete removal of the Notes feature and Golden LUMI, including selector entry, page, model, background, photo, and preload references. These changes supersede earlier descriptions of solid card/popup fills and additional LUMIs.

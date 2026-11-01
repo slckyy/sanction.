@@ -38,10 +38,8 @@ export function setupCopyPrompt() {
       } else copied = legacyCopy();
     } catch { copied = false; }
     finally { busy = false; }
-    message.textContent = copied ? "Research prompt copied" : "Couldn’t copy the prompt. Please tap Copy again.";
-    message.setAttribute("role", copied ? "status" : "alert");
-    message.hidden = false;
+    window.SanctionMotion.message(message, copied ? "Research prompt copied" : "Couldn’t copy the prompt. Please tap Copy again.", !copied);
     const shownText = message.textContent;
-    timer = setTimeout(() => { if (message.textContent === shownText) message.hidden = true; }, 3500);
+    timer = setTimeout(() => { if (message.textContent === shownText) window.SanctionMotion.hideMessage(message); }, 3500);
   });
 }

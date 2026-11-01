@@ -176,15 +176,17 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
   dialog.append(edit, close, body);
   app.append(dialog);
   let changingClient = false;
-  close.addEventListener("click", () => dialog.close());
-  dialog.addEventListener("cancel", event => { if (changingClient) event.preventDefault(); });
+  const motion = window.SanctionMotion;
+  const modal = motion.dialog(dialog, body, () => changingClient);
+  close.addEventListener("click", () => modal.close());
   dialog.addEventListener("click", event => {
     if (event.target !== dialog || changingClient) return;
     const rect = dialog.getBoundingClientRect();
-    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
+    if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) modal.close();
   });
 
   function prepareDialog(client, label) {
+    modal.prepare();
     dialog.classList.toggle("is-lost", clientList(client) === "lost");
     edit.hidden = true;
     edit.onclick = null;
@@ -212,7 +214,7 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
       row.append(element("dt", "", `${label}:`), value);
       details.append(row);
     }
-    if (!dialog.open) dialog.showModal();
+    modal.open();
   }
 
   function showEdit(client) {
@@ -246,6 +248,7 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
     error.hidden = true;
     form.append(fields, options, error);
     body.append(form);
+    modal.finish();
     controls.get("business_name").focus({ preventScroll: true });
     form.addEventListener("submit", async event => {
       event.preventDefault();
@@ -259,7 +262,7 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
       try {
         const updated = await editClient(db, client.id, values);
         const newCard = card(updated);
-        rendered.get(client.id).replaceWith(newCard);
+        motion.updateLists([lists.clients], () => rendered.get(client.id).replaceWith(newCard));
         rendered.set(client.id, newCard);
         showDetails(updated);
         edit.focus({ preventScroll: true });
@@ -298,17 +301,19 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
         error.hidden = true;
         try {
           const updated = await changeClient(db, client.id, action);
+          await modal.close(true);
           const oldCard = rendered.get(client.id);
-          if (updated) {
-            const newCard = card(updated);
-            if (clientList(updated) === source) oldCard.replaceWith(newCard);
-            else { oldCard.remove(); lists[clientList(updated)].append(newCard); }
-            rendered.set(client.id, newCard);
-          } else {
-            oldCard.remove();
-            rendered.delete(client.id);
-          }
-          dialog.close();
+          motion.updateLists(Object.values(lists), () => {
+            if (updated) {
+              const newCard = card(updated);
+              if (clientList(updated) === source) oldCard.replaceWith(newCard);
+              else { oldCard.remove(); lists[clientList(updated)].append(newCard); }
+              rendered.set(client.id, newCard);
+            } else {
+              oldCard.remove();
+              rendered.delete(client.id);
+            }
+          });
           const focusTarget = source === "clients" && (action === "activate" || action === "deactivate")
             ? rendered.get(client.id).querySelector(".client-send-button")
             : lists[source].querySelector(".client-send-button") || lists[source].closest(".page-scroll");
@@ -327,7 +332,7 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
     }
     const heading = element("h2", "client-action-heading", source === "lost" ? "DELETE?" : "SEND TO?");
     body.append(heading, options, error);
-    dialog.showModal();
+    modal.open();
   }
 
   function card(client) {
@@ -361,9 +366,7 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
   }
 
   function notify(text, failed = false) {
-    message.textContent = text;
-    message.setAttribute("role", failed ? "alert" : "status");
-    message.hidden = false;
+    motion.message(message, text, failed);
   }
   function updateProgress(fraction, stage) {
     const value = Math.floor(fraction * 100);
@@ -388,7 +391,7 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
   }
 
   importButton.addEventListener("click", () => {
-    message.hidden = true;
+    motion.hideMessage(message);
     input.value = "";
     // Keep the originating page when iOS returns from its native file picker.
     setActive(true);
