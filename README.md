@@ -10,7 +10,7 @@ Event cards reuse the client card spacing, typography, corners, and action row w
 
 ## Shared client lists
 
-In the Clients list, Details includes a white `Edit` control at the top left. It makes the existing six fields editable in their original order, with black colon-ended labels. SAVE CHANGES validates and updates the same stored client, preserving its ID, list, and activation; the card and details refresh immediately. CANCEL or closing the editor discards unsaved changes. An empty Google page saves as null. Client and event Details labels all use black text and trailing colons.
+In the Clients list, Details includes a white `Edit` control at the top left. It makes the existing six fields editable in their original order, with white colon-ended labels. SAVE CHANGES validates and updates the same stored client, preserving its ID, list, and activation; the card and details refresh immediately. CANCEL or closing the editor discards unsaved changes. An empty Google page saves as null. Client and event Details labels all use white text and trailing colons.
 
 Call, Clients, and Lost render through the same card builder and CSS: the same typography, 16px corners, padding, 12px list gap, date/niche placement, and bottom action row. Cards and all Details, Edit, transfer, delete, and scheduling popups share 10% tinted glass, a 30% edge, and 14px backdrop blur. Call uses Rose `#F28B96`, Clients uses Blue `#86A5FF`, and Events/Past Events use Jade `#78D9B5`. Lost Clients uses neutral white glass with no gray tint over its existing gray background. White and dark-gray action buttons retain their own fills. Active Clients use Jade `#78D9B5` for the name, Details, and Send text; the date and niche retain their original color.
 
