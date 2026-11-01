@@ -157,10 +157,10 @@ export async function setupEvents({ app, navigate }) {
       form.append(group);
       return control;
     }
-    const name = field("Event Name", "event-name", "input", "text");
+    const name = field("Event Name:", "event-name", "input", "text");
     name.required = true;
-    const details = field("Event Details", "event-details", "textarea");
-    const date = field("Event Date", "event-date", "input", "datetime-local");
+    const details = field("Event Details:", "event-details", "textarea");
+    const date = field("Event Date:", "event-date", "input", "datetime-local");
     date.required = true;
     date.step = "60";
     const schedule = element("button", "client-action-button", "SCHEDULE EVENT");

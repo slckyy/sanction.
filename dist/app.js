@@ -383,5 +383,5 @@ preloadPage("call", import("./clients.js?v=client-workflow-2").then(({ setupClie
   setActive: value => { clientImportActive = value; }
 })));
 preloadPage("call", import("./copy-prompt.js?v=client-workflow-1").then(({ setupCopyPrompt }) => setupCopyPrompt()));
-preloadPage("events", import("./events.js?v=scheduler-1").then(({ setupEvents }) => setupEvents({ app, navigate })));
+preloadPage("events", import("./events.js?v=scheduler-3").then(({ setupEvents }) => setupEvents({ app, navigate })));
 startApp();
