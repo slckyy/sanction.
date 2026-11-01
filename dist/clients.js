@@ -324,7 +324,8 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
       });
       options.append(button);
     }
-    body.append(options, error);
+    const heading = element("h2", "client-action-heading", source === "lost" ? "DELETE?" : "SEND TO?");
+    body.append(heading, options, error);
     dialog.showModal();
   }
 

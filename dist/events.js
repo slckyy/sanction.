@@ -235,7 +235,7 @@ export async function setupEvents({ app, navigate }) {
       });
       options.append(button);
     }
-    body.append(options, error);
+    body.append(element("h2", "client-action-heading", "DELETE?"), options, error);
     dialog.showModal();
   }
 
