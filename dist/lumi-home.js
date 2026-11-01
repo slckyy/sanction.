@@ -1,7 +1,7 @@
 import * as THREE from './vendor/three-gltf.js?v=home-1';
 import { loadLumi } from './lumi-assets.js?v=startup-1';
 
-// Four live GLBs, one WebGL context. Each whole character is composited with
+// Three live GLBs, one WebGL context. Each whole character is composited with
 // one opacity so ghosting never exposes its hidden interior construction.
 export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepared = () => {} } = {}) {
   const host = panel.querySelector('.home-selector');
@@ -12,8 +12,7 @@ export function mountLumiHome(panel, items, onSelect, { paused = false, onPrepar
   const appearances = {
     call: { badge: '#F28B96', phase: 1.1, spin: .16, yaw: .35, rhythm: 0 },
     clients: { badge: '#86A5FF', phase: 0, spin: .14, yaw: 0, rhythm: 2 },
-    events: { badge: '#78D9B5', phase: 4.2, spin: -.17, yaw: .28, rhythm: 3 },
-    notes: { badge: '#F3B363', phase: 5.5, spin: .21, yaw: -.32, rhythm: 4 }
+    events: { badge: '#78D9B5', phase: 4.2, spin: -.17, yaw: .28, rhythm: 3 }
   };
   let selected = 0, position = 0, target = 0, pointer = null, wheelAt = 0;
   let backgroundPosition = NaN;

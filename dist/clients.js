@@ -185,6 +185,7 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
   });
 
   function prepareDialog(client, label) {
+    dialog.classList.toggle("is-lost", clientList(client) === "lost");
     edit.hidden = true;
     edit.onclick = null;
     body.replaceChildren();

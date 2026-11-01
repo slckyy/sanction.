@@ -1,5 +1,9 @@
 # Locked page design — 2026-10-23
 
+## Authorized shared glass and three-LUMI Home — 2026-11-01
+
+All current list cards and Details, Edit, transfer, delete, and scheduling popups use the approved translucent glass surface: Rose for Call, Blue for Clients, Jade for Events/Past Events, and neutral untinted glass for Lost Clients. Retain the existing button fills, label colors, card spacing, and aligned action-popup title/X row. The owner requested complete removal of the Notes feature and Golden LUMI, including selector entry, page, model, background, photo, and preload references. These changes supersede earlier descriptions of solid card/popup fills and additional LUMIs.
+
 ## Authorized Scheduler — 2026-11-01
 
 Scheduler adds a top-left glass plus circle, a Jade event form/details popup, and a top-right arrow to the list-only Past Events page using the existing Jade background. Event cards share client spacing and typography, omit the niche entirely, truncate long names with ellipsis, and show the scheduled ordinal date. Details contains the full event name, exact details, and local date/time. Upcoming Delete offers DELETE/DONE EARLY; past Delete offers YES/NO. Passed or completed-early events belong in Past Events. The owner explicitly removed the reminder requirement. Call import moves from the footer to a matching top-right down-arrow circle; its existing import behavior remains intact.
@@ -87,6 +91,5 @@ Compare every replicated page to the master at identical viewport and scroll pos
 | Call | ROSE | `#F28B96` |
 | Clients | BLUE | `#86A5FF` |
 | Events | JADE | `#78D9B5` |
-| Notes | GOLDEN | `#F3B363` |
 
 Each badge uses its page's locked color. Badge shape, padding, type, and black text remain shared. These page accents and the existing page backgrounds are approved color variations within the shared layout.

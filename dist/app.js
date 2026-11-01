@@ -13,11 +13,7 @@ const pageContent = [
   { id: "events", title: "Events • Management", color: "JADE", lumi: "SCHEDULER LUMI",
     description: "The space where all of your prospect events are scheduled.",
     photo: "jade-photo.png", alt: "Jade LUMI in a jade-toned street-fashion editorial.",
-    prefix: "", singular: "event", plural: "events", suffix: " scheduled", list: "scheduled-events" },
-  { id: "notes", title: "Notes • Everything", color: "GOLDEN", lumi: "NOTER LUMI",
-    description: "The space where everything about anything is documented.",
-    photo: "golden-photo.png", alt: "Golden LUMI in a golden-toned street-fashion editorial.",
-    prefix: "", singular: "note", plural: "notes", suffix: " written", list: "written-notes" }
+    prefix: "", singular: "event", plural: "events", suffix: " scheduled", list: "scheduled-events" }
 ];
 const clientsPanel = document.getElementById("panel-clients");
 for (const page of pageContent) {
@@ -121,7 +117,7 @@ function scheduleSceneBlur(state) {
 window.addEventListener("resize", () => {
   pageStates.filter(state => !state.panel.hidden).forEach(scheduleSceneBlur);
 });
-const managerNames = { call: "CALL", clients: "CLIENT", events: "EVENT", notes: "NOTE" };
+const managerNames = { call: "CALL", clients: "CLIENT", events: "EVENT" };
 function updateEntry() {
   const page = pageContent.find(item => item.id === activePage) || pageContent[selectedLumi];
   enterButton.parentElement.classList.toggle("is-manager", activePage !== "home");
@@ -158,8 +154,7 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 const lumiAssets = [
   ["call", "./assets/rose-lumi-real.glb?v=rose-led-arm-3", "Rose LUMI holding a telephone"],
   ["clients", "./assets/blue-lumi-real.glb?v=blue-master-1", "Blue LUMI presenting a black plastic contact card"],
-  ["events", "./assets/jade-lumi-real.glb?v=jade-master-1", "Jade LUMI presenting a hovering calendar with metal binding rings"],
-  ["notes", "./assets/golden-lumi-real.glb?v=golden-master-1", "Golden LUMI writing in a black cardboard notebook with a stylus"]
+  ["events", "./assets/jade-lumi-real.glb?v=jade-master-1", "Jade LUMI presenting a hovering calendar with metal binding rings"]
 ];
 const startupScreen = document.getElementById("startup-screen");
 const app = document.querySelector(".app");
@@ -326,7 +321,7 @@ async function startApp() {
     const fontsReady = track(document.fonts.ready);
     const modules = Promise.all([
       track(import("./lumi-assets.js?v=startup-1")),
-      track(import("./lumi-home.js?v=edit-1")),
+      track(import("./lumi-home.js?v=three-lumis-1")),
       track(import("./lumi-viewer.js?v=four-lumis-1"))
     ]);
     const prepareModels = modules.then(async ([assetModule, homeModule, viewerModule]) => {
@@ -375,7 +370,7 @@ async function startApp() {
     document.getElementById("startup-retry").focus();
   }
 }
-preloadPage("call", import("./clients.js?v=action-headings-1").then(({ setupClientImport }) => setupClientImport({
+preloadPage("call", import("./clients.js?v=shared-glass-1").then(({ setupClientImport }) => setupClientImport({
   app, importButton, startupScreen, fade, nextFrame,
   setActive: value => { clientImportActive = value; }
 })));
