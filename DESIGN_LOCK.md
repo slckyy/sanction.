@@ -1,5 +1,9 @@
 # Locked page design — 2026-10-23
 
+## Authorized visible elastic motion — 2026-11-01
+
+The owner clarified that the subtle motion pass was too fast and did not show enough physical movement. This supersedes its timing below: popups now expand from the actual tapped control, visibly stretch past their resting size, and settle in the center over 780ms; they contract back toward that origin over 560ms. Every button gets a full 560ms compress/recoil response even on a quick tap. Details/Edit reshapes over 680ms; pages move and settle over 760ms with a 700ms crossfade; cards and feedback use the same visible stretch-and-settle rhythm. Retain native modal focus/busy protection, stationary close controls, approved artwork/colors, and reduced-motion alternatives.
+
 ## Authorized shared motion pass — 2026-11-01
 
 The owner authorized a complete motion consistency pass and publication after review. Page and loader fades now use 360ms; modal entrance/content changes use 240–280ms, exit 180ms, presses 140ms, and list repositioning 320ms, all with the same restrained ease-out family. Preserve direct LUMI dragging and existing artwork. Animate modal/backdrop entry and exit, Details/Edit changes, record movement/removal, activation colors, count/navigation labels, and feedback. Native dialog focus trapping and busy guards remain intact; long dialog content scrolls beneath stationary close/edit controls. Reduced motion removes spatial effects and limits fades to 80ms. Existing approved colors, card geometry, button sizes, gaps, typography, and artwork remain unchanged.

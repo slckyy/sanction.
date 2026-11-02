@@ -164,7 +164,7 @@ const app = document.querySelector(".app");
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 const progressBar = document.getElementById("startup-progress");
 const progressPercentage = document.getElementById("startup-percentage");
-const FADE_MS = 360;
+const FADE_MS = 700;
 const preparations = new Map();
 const imageDecodes = new WeakMap();
 let navigating = false;
@@ -229,6 +229,7 @@ async function navigate(id, resetHome = false) {
     if (resetHome) homeViewer?.select(DEFAULT_LUMI, true);
     showPage(id);
     incoming.classList.add("is-page-incoming");
+    motion.page(incoming);
     let covered = 0;
     for (const [index, layer] of layers.entries()) {
       if (layer.panel === incoming || layer.weight < .00001) continue;

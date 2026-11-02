@@ -6,7 +6,7 @@
   --lumi-gray: #A5A9B2;
   --button-gray: #232323;
   --motion-ease: cubic-bezier(.22, 1, .36, 1);
-  --motion-press: 140ms;
+  --motion-press: 180ms;
   color-scheme: dark;
   font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
   background: #000;
@@ -380,10 +380,10 @@ button, a.client-name, .client-details a {
   transition: scale var(--motion-press) var(--motion-ease), opacity 180ms var(--motion-ease),
     background-color 180ms var(--motion-ease), color 240ms var(--motion-ease);
 }
-button:active:not(:disabled), a.client-name:active, .client-details a:active { scale: .97; }
+button:active:not(:disabled), a.client-name:active, .client-details a:active { scale: .90 .94; }
 .client-name, .client-details-button, .client-send-button { transition: color 240ms var(--motion-ease), opacity 140ms var(--motion-ease), scale 140ms var(--motion-ease); }
 .client-name:active, .client-details-button:active, .client-send-button:active, .client-dialog-edit:active, .client-dialog-close:active { opacity: .68; }
-.entry-label { display: inline-block; }
+.entry-label, .clients-section h2 > span { display: inline-block; }
 .client-dialog { overflow: hidden; }
 .client-dialog-body, .event-dialog-body {
   max-height: calc(var(--app-height) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 112px);
@@ -399,16 +399,16 @@ button:active:not(:disabled), a.client-name:active, .client-details a:active { s
 }
 .client-dialog-close, .client-dialog-edit { z-index: 2; }
 .client-dialog.is-closing { pointer-events: none; }
-.client-dialog[open]::backdrop { animation: glass-backdrop-in 280ms var(--motion-ease) both; }
-.client-dialog.is-closing::backdrop { animation: glass-backdrop-out 180ms var(--motion-ease) both; }
+.client-dialog[open]::backdrop { animation: glass-backdrop-in 780ms var(--motion-ease) both; }
+.client-dialog.is-closing::backdrop { animation: glass-backdrop-out 560ms var(--motion-ease) both; }
 .motion-dialog-copy { position: absolute; pointer-events: none; overflow: hidden; margin: 0; z-index: 1; }
 .motion-departure { position: absolute; pointer-events: none; z-index: 1; }
 .motion-departure .client-card { margin: 0; }
-.client-action-error:not([hidden]) { animation: feedback-in 220ms var(--motion-ease); }
+.client-action-error:not([hidden]) { animation: feedback-in 540ms var(--motion-ease); }
 .event-field input, .event-field textarea { transition: border-color 180ms var(--motion-ease), background-color 180ms var(--motion-ease); }
 @keyframes glass-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes glass-backdrop-out { from { opacity: 1; } to { opacity: 0; } }
-@keyframes feedback-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes feedback-in { from { opacity: 0; transform: translateY(14px) scale(.96); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   button, a.client-name, .client-details a, .client-details-button, .client-send-button,
   .event-field input, .event-field textarea { transition-duration: 80ms; }
