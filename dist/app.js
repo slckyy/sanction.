@@ -373,7 +373,7 @@ async function startApp() {
     document.getElementById("startup-retry").focus();
   }
 }
-preloadPage("call", import("./clients.js?v=unified-motion-1").then(({ setupClientImport }) => setupClientImport({
+preloadPage("call", import("./clients.js?v=clear-clients-1").then(({ setupClientImport }) => setupClientImport({
   app, importButton, startupScreen, fade, nextFrame,
   setActive: value => { clientImportActive = value; }
 })));

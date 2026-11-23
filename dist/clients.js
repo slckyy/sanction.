@@ -32,6 +32,15 @@ export function openClientDatabase() {
   });
 }
 
+export function clearClients(db) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction("clients", "readwrite");
+    transaction.oncomplete = () => resolve();
+    transaction.onabort = () => reject(transaction.error || new Error("Could not clear clients."));
+    transaction.objectStore("clients").clear();
+  });
+}
+
 export function readClients(db) {
   return new Promise((resolve, reject) => {
     const request = db.transaction("clients").objectStore("clients").getAll();
@@ -389,6 +398,41 @@ export async function setupClientImport({ app, importButton, startupScreen, fade
     importButton.disabled = true;
     return;
   }
+
+  const clearButton = document.getElementById("clear-clients");
+  clearButton.disabled = false;
+  clearButton.addEventListener("click", () => {
+    prepareDialog({ list: "lost" }, "Clear all clients from every list?");
+    const heading = element("h2", "client-action-heading", "CLEAR ALL CLIENTS?");
+    const warning = element("p", "", "This permanently clears Call, Clients (including active clients), and Lost.");
+    const options = element("div", "client-action-options");
+    const yes = element("button", "client-action-button", "YES");
+    const no = element("button", "client-action-button", "NO");
+    no.autofocus = true;
+    no.addEventListener("click", () => modal.close());
+    yes.addEventListener("click", async () => {
+      if (changingClient) return;
+      changingClient = true;
+      yes.disabled = no.disabled = close.disabled = true;
+      try {
+        await clearClients(db);
+        await modal.close(true);
+        motion.updateLists(Object.values(lists), () => {
+          for (const list of Object.values(lists)) list.replaceChildren();
+          rendered.clear();
+        });
+      } catch {
+        warning.setAttribute("role", "alert");
+        warning.textContent = "Could not clear clients. Please try again.";
+      } finally {
+        changingClient = false;
+        yes.disabled = no.disabled = close.disabled = false;
+      }
+    });
+    options.append(yes, no);
+    body.append(heading, warning, options);
+    modal.open();
+  });
 
   importButton.addEventListener("click", () => {
     motion.hideMessage(message);
